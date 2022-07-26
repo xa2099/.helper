@@ -421,7 +421,7 @@ function .sx {
 function .u {
     pr_h_i "Updating to the latest version."
     pr_p_i "Current Version : $version"
-    wget -q --show-progress -P "${HOME}" -O .helper.sh "${S}"
+    wget -q --show-progress -P "${HOME}/" -O .helper.sh "${S}"
     source "${HOME}/.helper.sh"
     pr_p_i "New Version : $version"
 }
