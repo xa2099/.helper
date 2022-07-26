@@ -1,5 +1,5 @@
 name="CLI Helper"
-version="2022.07.25"
+version="2022.07.27"
 
 # ======================================================================================================================
 # Configuration.
@@ -32,12 +32,14 @@ read -r -d '' usage << BLOCK
 .s      Script service.
 
 .l      Using 'ls' command, lists files incuding hidden. Shows directories first.
-.d     Change to the previous directory. Same as 'cd -'.
+.dp     Change to the previous directory. Same as 'cd -'.
 
 .c      Command to run.
-.cx     Command to delete.
+.cx     Command to remove from the list.
 .d      Directory to change to.
 .dx     Derectory to delete from the list.
+.f      File to edit.
+.fx     File to remove from the list.
 
 .sc     Service status.
 .ss     Service start.
@@ -55,7 +57,7 @@ BLOCK
 # ======================================================================================================================
 # Aliases.
 
-alias .db="cd -" # Directory Back. Retrun to the previous directory.
+alias .dp="cd -" # Directory Previous. Retrun to the previous directory.
 alias .l="ls -alh --group-directories-first" # List with human readable sized and directories first.
 
 
@@ -131,16 +133,24 @@ function .d {
             mapfile -t list < "${LD}"
             pr_h_i "Select Directory to move to:"
             select option in "${list[@]}"; do
-                pr_p_i "CHANGED DIRECTORY: $option"
-                eval "cd $option"
-                break
+                if [ -d $1 ]; then
+                    pr_p_i "CHANGED DIRECTORY: $option"
+                    eval "cd $option"
+                    break
+                else
+                    pr_h_e "Directory '$1' does not exist."; pr_br;
+                fi
             done
         else
             pr_h_w "No Directory List created so far."; pr_br;
         fi
     else
-        echo "$@" >> "${LD}"
-        eval "cd $@"
+        if [ -d $@ ]; then
+            echo "$@" >> "${LD}"
+            eval "cd $@"
+        else
+            pr_h_e "Directory '$@' does not exist."; pr_br;
+        fi
     fi
 }
 
@@ -189,7 +199,7 @@ function .f {
             pr_h_w "No File List created so far."; pr_br;
         fi
     else
-        if [ -f $1 ]; then
+        if [ -f $@ ]; then
             echo "$@" >> "${LF}"
             eval "${E} $@"
         else
