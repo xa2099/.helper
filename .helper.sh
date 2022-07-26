@@ -1,16 +1,24 @@
-name="Custom CLI Helper"
-version="2022.07.26"
+name="CLI Helper"
+version="2022.07.25"
 
 # ======================================================================================================================
 # Configuration.
 
-# Local Command and Directory List.
+# Latest version of this file.
+S="https://raw.githubusercontent.com/xa2099/.helper.sh/main/.helper.sh"
+
+# Remote List Templates.
+TC="https://raw.githubusercontent.com/xa2099/.helper.sh/main/.helper.c"
+TD="https://raw.githubusercontent.com/xa2099/.helper.sh/main/.helper.d"
+TF="https://raw.githubusercontent.com/xa2099/.helper.sh/main/.helper.f"
+
+# Local List.
 LC="${HOME}/.helper.c"
 LD="${HOME}/.helper.d"
+LF="${HOME}/.helper.f"
 
-# Templates for Command and Directory List.
-TC="https://gist.githubusercontent.com/xa2099/a561124bfd6025f32839b664b62aaea2/raw/d2f476d372692f16db808740193f4b0b8a64590b/.helper.c"
-TD="https://gist.githubusercontent.com/xa2099/a561124bfd6025f32839b664b62aaea2/raw/d2f476d372692f16db808740193f4b0b8a64590b/.helper.d"
+# Editor choice. nano, vim.
+E="nano"
 
 
 # ======================================================================================================================
@@ -24,6 +32,7 @@ read -r -d '' usage << BLOCK
 .s      Script service.
 
 .l      Using 'ls' command, lists files incuding hidden. Shows directories first.
+.d     Change to the previous directory. Same as 'cd -'.
 
 .c      Command to run.
 .cx     Command to delete.
@@ -46,8 +55,8 @@ BLOCK
 # ======================================================================================================================
 # Aliases.
 
-alias .d-=".cd -1"
-alias .l="ls -alh --group-directories-first"
+alias .db="cd -" # Directory Back. Retrun to the previous directory.
+alias .l="ls -alh --group-directories-first" # List with human readable sized and directories first.
 
 
 # ======================================================================================================================
@@ -85,12 +94,12 @@ function .c {
             mapfile -t list < "${LC}"
             pr_h_i "Select Command to execute:"
             select option in "${list[@]}"; do
-                pr_p_i "EXECUTED: $option"
+                pr_br; pr_p_i "EXECUTED: $option"; pr_br;
                 eval "$option"
                 break
             done
         else
-            pr_p_w "No Command List created so far."
+            pr_h_w "No Command List created so far."; pr_br;
         fi
     else
         echo "$@" >> "${LC}"
@@ -110,48 +119,9 @@ function .cx {
                 break
             done
         else
-            pr_p_w "No Command List created so far."
+            pr_h_w "No Command List created so far."; pr_br;
         fi
     fi
-}
-
-function .cd  {
-    local x2 the_new_dir adir index
-    local -i cnt
-    if [[ $1 ==    "--" ]]; then
-        dirs -v
-        return 0
-    fi
-    the_new_dir=$1
-    [[ -z $1 ]] && the_new_dir=$HOME
-
-    if [[ ${the_new_dir:0:1} == '-' ]]; then
-        # Extract dir N from dirs
-        index=${the_new_dir:1}
-        [[ -z $index ]] && index=1
-        adir=$(dirs +$index)
-        [[ -z $adir ]] && return 1
-        the_new_dir=$adir
-    fi
-    # '~' has to be substituted by ${HOME}
-    [[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
-    # Now change to the new dir and add to the top of the stack
-    pushd "${the_new_dir}" > /dev/null
-    [[ $? -ne 0 ]] && return 1
-    the_new_dir=$(pwd)
-    # Trim down everything beyond 11th entry
-    popd -n +11 2>/dev/null 1>/dev/null
-    # Remove any other occurence of this dir, skipping the top of the stack
-    for ((cnt=1; cnt <= 10; cnt++)); do
-        x2=$(dirs +${cnt} 2>/dev/null)
-        [[ $? -ne 0 ]] && return 0
-        [[ ${x2:0:1} == '~' ]] && x2="${HOME}${x2:1}"
-        if [[ "${x2}" == "${the_new_dir}" ]]; then
-            popd -n +$cnt 2>/dev/null 1>/dev/null
-            cnt=cnt-1
-        fi
-    done
-    return 0
 }
 
 function .d {
@@ -162,11 +132,11 @@ function .d {
             pr_h_i "Select Directory to move to:"
             select option in "${list[@]}"; do
                 pr_p_i "CHANGED DIRECTORY: $option"
-                eval ".cd $option"
+                eval "cd $option"
                 break
             done
         else
-            pr_p_w "No Directory List created so far."
+            pr_h_w "No Directory List created so far."; pr_br;
         fi
     else
         echo "$@" >> "${LD}"
@@ -186,7 +156,7 @@ function .dx {
                 break
             done
         else
-            pr_p_w "No Directory List created so far."
+            pr_h_w "No Directory List created so far."; pr_br;
         fi
     fi
 }
@@ -198,6 +168,51 @@ function .dd {
         local cmd="rm -rf $1"
         pr_p_i "EXECUTED: $cmd"
         eval "$cmd"
+    fi
+}
+
+function .f {
+    if [ -z $1 ]; then
+        if [ -f "${LF}" ]; then
+            local list
+            mapfile -t list < "${LF}"
+            pr_h_i "Select File to edit:"
+            select option in "${list[@]}"; do
+                if [ -f $option ]; then
+                    eval "${E} $option"
+                    break
+                else
+                    pr_h_e "File '$option' does not exist."; pr_br;
+                fi
+            done
+        else
+            pr_h_w "No File List created so far."; pr_br;
+        fi
+    else
+        if [ -f $1 ]; then
+            echo "$@" >> "${LF}"
+            eval "${E} $@"
+        else
+            pr_h_e "File '$1' does not exist."; pr_br;
+        fi
+
+    fi
+}
+
+function .fx {
+    if [ -z $1 ]; then
+        if [ -f "${LF}" ]; then
+            local list
+            mapfile -t list < "${LF}"
+            pr_h_i "Select File to remove from list:"
+            select option in "${list[@]}"; do
+                eval "sed -i '${REPLY}d' ${LF}"
+                pr_p_i "REMOVED: Option $REPLY : $option"
+                break
+            done
+        else
+            pr_h_w "No File List created so far."; pr_br;
+        fi
     fi
 }
 
@@ -250,10 +265,8 @@ function .fif {
 }
 
 function .h {
-    pr_h_i "$name Help"
-    pr_br
-    pr_p_w "$usage"
-    pr_br
+    pr_h_i "$name Usage Help"
+    pr_br; pr_p_w "$usage"; pr_br;
 }
 
 function .i {
@@ -274,13 +287,21 @@ function .i {
 
 function .s {
     local choices=(
-        'Copy Directory List'
-        'Copy Command List'
-        'Copy Directory and Command Lists'
-        'Show Directory List'
-        'Show Command List'
-        'Show Directory and Command List'
+        'Copy Remote Directory List' # 1
+        'Copy Remote Command List'   # 2
+        'Copy Remote File Lists'     # 3
+        'Show Directory List'        # 4
+        'Show Command List'          # 5
+        'Show File List'             # 6
+        'Empty Directory List'       # 7
+        'Empty Command List'         # 8
+        'Empty File List'            # 9
+        'Copy All Remote Lists'      # 10
+        'Show All Lists'             # 11
+        'Empty All Lists'            # 12
     )
+    pr_h_i "Select a system function to perform:"
+    COLUMNS=0
     select choice in "${choices[@]}"
     do
         case $REPLY in
@@ -297,30 +318,66 @@ function .s {
                 break
             ;;
             3)
-                wget -q --show-progress -P "${HOME}" -O .helper.d "${TD}"
-                wget -q --show-progress -P "${HOME}" -O .helper.c "${TC}"
+                wget -q --show-progress -P "${HOME}" -O .helper.f "${TF}"
                 pr_p_i "DONE"
                 pr_br
                 break
             ;;
             4)
-                pr_h_i "Directory List"
+                pr_h_i "Directory List | ${LD}"
                 cat "${LD}"; pr_br; pr_br;
                 break
             ;;
             5)
-                pr_h_i "Command List"
+                pr_h_i "Command List | ${LC}"
                 cat "${LC}"; pr_br; pr_br;
                 break
             ;;
             6)
-                pr_h_i "Directory List"
-                cat "${LD}"; pr_br;
-                pr_h_i "Command List"
-                cat "${LC}"; pr_br; pr_br;
+                pr_h_i "File List | ${LF}"
+                cat "${LF}"; pr_br; pr_br;
                 break
             ;;
-            *) pr_h_e "Don't be stupid. Make a valid choice! :)"
+            7)
+                rm "${LD}"
+                pr_h_i "Emptied Directory List"; pr_br;
+                break
+            ;;
+            8)
+                rm "${LC}"
+                pr_h_i "Emptied Command List"; pr_br;
+                break
+            ;;
+            9)
+                rm "${LF}"
+                pr_h_i "Emptied File List"; pr_br;
+                break
+            ;;
+            10)
+                wget -q --show-progress -P "${HOME}" -O .helper.d "${TD}"
+                wget -q --show-progress -P "${HOME}" -O .helper.c "${TC}"
+                wget -q --show-progress -P "${HOME}" -O .helper.f "${TF}"
+                pr_p_i "DONE"
+                pr_br
+                break
+            ;;
+            11)
+                pr_h_i "Directory List | ${LD}"
+                cat "${LD}"
+                pr_h_i "Command List | ${LC}"
+                cat "${LC}"
+                pr_h_i "File List | ${LF}"
+                cat "${LF}"; pr_br; pr_br;
+                break
+            ;;
+            12)
+                rm "${LD}"
+                rm "${LC}"
+                rm "${LF}"
+                pr_h_i "Emptied All Lists"; pr_br;
+                break
+            ;;
+            *) pr_h_e "Make a valid choice!"; pr_br;
         esac
     done
 }
@@ -351,9 +408,15 @@ function .sx {
     systemctl status "$1"
 }
 
+function .u {
+    pr_h_i "Updating to the latest version."
+    pr_p_i "Current Version : $version"
+    wget -q --show-progress -P "${HOME}" -O .helper.sh "${S}"
+    source "${HOME}/.helper.sh"
+    pr_p_i "New Version : $version"
+}
+
 function .v {
     pr_h_i "$name \\nVersion : $version"
     pr_br
 }
-
-.v
