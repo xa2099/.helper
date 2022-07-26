@@ -364,9 +364,9 @@ function .s {
                 break
             ;;
             10)
-                wget -q --show-progress -P "${HOME}" -O .helper.d "${TD}"
-                wget -q --show-progress -P "${HOME}" -O .helper.c "${TC}"
-                wget -q --show-progress -P "${HOME}" -O .helper.f "${TF}"
+                wget -q --show-progress -P "${HOME}/" -O .helper.d "${TD}"
+                wget -q --show-progress -P "${HOME}/" -O .helper.c "${TC}"
+                wget -q --show-progress -P "${HOME}/" -O .helper.f "${TF}"
                 pr_p_i "DONE"
                 pr_br
                 break
