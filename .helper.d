@@ -1,0 +1,2 @@
+/etc/salt
+/srv/salt
