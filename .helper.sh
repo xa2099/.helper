@@ -316,19 +316,19 @@ function .s {
     do
         case $REPLY in
             1)
-                wget -q --show-progress -P "${HOME}" -O .helper.d "${TD}"
+                wget -q --show-progress -O "${HOME}/.helper.d" "${TD}"
                 pr_p_i "DONE"
                 pr_br
                 break
             ;;
             2)
-                wget -q --show-progress -P "${HOME}" -O .helper.c "${TC}"
+                wget -q --show-progress -O "${HOME}/.helper.c" "${TC}"
                 pr_p_i "DONE"
                 pr_br
                 break
             ;;
             3)
-                wget -q --show-progress -P "${HOME}" -O .helper.f "${TF}"
+                wget -q --show-progress -O "${HOME}/.helper.f" "${TF}"
                 pr_p_i "DONE"
                 pr_br
                 break
@@ -364,9 +364,9 @@ function .s {
                 break
             ;;
             10)
-                wget -q --show-progress -P "${HOME}/" -O .helper.d "${TD}"
-                wget -q --show-progress -P "${HOME}/" -O .helper.c "${TC}"
-                wget -q --show-progress -P "${HOME}/" -O .helper.f "${TF}"
+                wget -q --show-progress -O "${HOME}/.helper.d" "${TD}"
+                wget -q --show-progress -O "${HOME}/.helper.c" "${TC}"
+                wget -q --show-progress -O "${HOME}/.helper.f" "${TF}"
                 pr_p_i "DONE"
                 pr_br
                 break
@@ -421,7 +421,7 @@ function .sx {
 function .u {
     pr_h_i "Updating to the latest version."
     pr_p_i "Current Version : $version"
-    wget -q --show-progress -P "${HOME}/" -O .helper.sh "${S}"
+    wget -q --show-progress -O "${HOME}/.helper.sh" "${S}"
     source "${HOME}/.helper.sh"
     pr_p_i "New Version : $version"
 }
