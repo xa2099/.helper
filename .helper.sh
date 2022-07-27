@@ -403,8 +403,8 @@ function .u {
     history -d $(history 1)
     pr_h_i "Updating to the latest version."
     pr_p_i "Current Version : $version"
-    history -s "wget -q --show-progress -O ${DIR}/.helper.sh ${REPO}/.helper.sh"
-    wget -q --show-progress -O "${DIR}/.helper.sh" "${REPO}/.helper.sh"
+    history -s "wget -q -O ${DIR}/.helper.sh ${REPO}/.helper.sh"
+    wget -q -O "${DIR}/.helper.sh" "${REPO}/.helper.sh"
     source "${DIR}/.helper.sh"
 }
 
