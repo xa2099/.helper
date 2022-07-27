@@ -188,7 +188,7 @@ function .f {
         if [ -f "${FILES_LIST}" ]; then
             local list
             mapfile -t list < "${FILES_LIST}"
-            pr_h_i "Select File to Edit:"
+            pr_h_d "Select File to Edit:"
             select option in "${list[@]}"; do
                 if [ -f $option ]; then
                     history -s "${E} $option"
@@ -306,6 +306,8 @@ function .t {
     if [ -f "${TEMPLATES_LIST}" ]; then
         local list
         mapfile -t list < "${TEMPLATES_LIST}"
+        history -s "rm ${TEMPLATES_LIST}"
+        rm "${TEMPLATES_LIST}"
         pr_h_d "Select Template From the List:"
         select option in "${list[@]}"; do
             history -s "wget -q --show-progress -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
