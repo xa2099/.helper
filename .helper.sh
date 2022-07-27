@@ -122,7 +122,7 @@ function .ch {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_d "Select Command to Remove From the List"
+            pr_h_d "Select Command to Copy into History From the List"
             select option in "${list[@]}"; do
                 history -s "${option}"
                 pr_p_i "Loaded into history : '$option'. Use Up Arrow to get."
