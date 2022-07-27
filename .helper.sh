@@ -156,7 +156,6 @@ function .cx {
 
 function .d {
     history -d $(history 1)
-    show_help=0
     if [ -z $1 ]; then
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
