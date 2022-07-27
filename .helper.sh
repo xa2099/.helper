@@ -41,7 +41,7 @@ read -r -d '' usage << BLOCK
 .sr     Service restart.
 
 .q      This file.
-.h      Full hlep.
+.h      Full help.
 .v      Script version.
 .o      Output all lists.
 .rem    Remove helper.sh and associated files.
