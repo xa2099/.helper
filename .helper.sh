@@ -25,27 +25,27 @@ EDITOR="nano"
 
 read -r -d '' usage << BLOCK
 
-.c      Command to run.
-.ch     Command to load as last history item.
-.cx     Command to remove from the list.
+    .c      Command to run.
+    .ch     Command to load as last history item.
+    .cx     Command to remove from the list.
 
-.d      Directory to change to.
-.dx     Derectory to delete from the list.
+    .d      Directory to change to.
+    .dx     Derectory to delete from the list.
 
-.f      File to edit.
-.fx     File to remove from the list.
+    .f      File to edit.
+    .fx     File to remove from the list.
 
-.sc     Service status.
-.ss     Service start.
-.sx     Service stop.
-.sr     Service restart.
+    .sc     Service status.
+    .ss     Service start.
+    .sx     Service stop.
+    .sr     Service restart.
 
-.q      Quick refence.
-.h      Full help.
-.t      Templates.
-.v      Script version.
-.o      Output all lists.
-.rem    Remove helper.sh and associated files.
+    .q      Quick refence.
+    .h      Full help.
+    .t      Templates.
+    .v      Script version.
+    .o      Output all lists.
+    .rem    Remove helper.sh and associated files.
 
 BLOCK
 
