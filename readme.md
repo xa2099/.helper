@@ -43,7 +43,8 @@ Quick Reference
 - `.sx`     Service stop.
 - `.sr`     Service restart.
 
-- `.h`      This text.
+- `.q`      Quick reference.
+- `.h`      Full hlep.
 - `.v`      Script version.
 - `.o`      Output all lists.
 - `.rem`    Remove helper.sh and associated files.
@@ -114,6 +115,21 @@ Output Lists
 
 `.o` command will print out all the list. It is usefull if you want to copy
 some of the commands for later use.
+
+
+Templates
+---------
+
+`.t` command pulls a list of available templates from the repository. You
+can select on of the templates. Once selected the directory, command and
+file edit entries will be copied into your script.
+
+This is very usefull when working on multiple servers and having specific
+sets of entries for certain type of work.
+
+Warning: Importing templates will replace all the current entries in your 
+lists. Importing templates a great way of staring on a new server with 
+useful lists already available to you.
 
 
 Remove
