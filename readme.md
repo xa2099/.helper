@@ -29,24 +29,37 @@ permanent add the above command to the "~/.profile" file.
 Quick Reference
 ---------------
 
-`.c`      Command to run.
-`.ch`     Command to load as last "history" item.
-`.cx`     Command to remove from the list.
+- `.c`      Command to run.
+- `.ch`     Command to load as last "history" item.
+- `.cx`     Command to remove from the list.
 
-`.d`      Directory to change to.
-`.dx`     Derectory to delete from the list.
+- `.d`      Directory to change to.
+- `.dx`     Derectory to delete from the list.
 
-`.f`      File to edit.
-`.fx`     File to remove from the list.
-`.sc`     Service status.
-`.ss`     Service start.
-`.sx`     Service stop.
-`.sr`     Service restart.
+- `.f`      File to edit.
+- `.fx`     File to remove from the list.
+- `.sc`     Service status.
+- `.ss`     Service start.
+- `.sx`     Service stop.
+- `.sr`     Service restart.
 
-`.h`      This text.
-`.v`      Script version.
-`.o`      Output all lists.
-`.rem`    Remove helper.sh and associated files.
+- `.h`      This text.
+- `.v`      Script version.
+- `.o`      Output all lists.
+- `.rem`    Remove helper.sh and associated files.
+
+
+Services
+--------
+
+There are four commands that start, stop, restart and check status of services. All
+command other than check status are followed by the check status command to inspect
+that it executed correctly. 
+
+- `.sc` Service Check. Example: `.sc salt-minion`
+- `.sx` Service Stop. Example: `.sx salt-minion`
+- `.ss` Service Start. Example: `.ss salt-minion`
+- `.sr` Service Restart. Example: `.sr salt-minion`
 
 
 Changing Directories
@@ -108,3 +121,10 @@ Remove
 
 `.rem` command will remove all the files associated with the ".helper.sh"
 script. You will be propted to answer "yes" to confirm the command.
+
+
+History
+-------
+Note that when the commands are run they are not registered in the "history". 
+Instead the actual commands are added. For example running `.d /var/log` will
+show up in "history" as `cd /var/log`.
