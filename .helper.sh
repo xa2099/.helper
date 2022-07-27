@@ -40,8 +40,9 @@ read -r -d '' usage << BLOCK
 .sx     Service stop.
 .sr     Service restart.
 
-.q      This file.
+.q      Quick refence.
 .h      Full help.
+.t      Templates.
 .v      Script version.
 .o      Output all lists.
 .rem    Remove helper.sh and associated files.
@@ -316,7 +317,7 @@ function .o {
 
 function .q {
     history -d $(history 1)
-    pr_h_i "$name Usage Help"
+    pr_h_i "$name Quick Help"
     pr_br
     pr_p "$usage"
     pr_br
@@ -412,6 +413,7 @@ function .v {
         history -d $(history 1)
     fi
     pr_h_i "Name     : $name \\nVersion  : $version \\nLocation : $DIR"
+    pr_p_w "Execute '.q' for quick reference or '.h' for full help."
     pr_br
 }
 
