@@ -262,6 +262,16 @@ function .o {
     pr_br
 }
 
+function .rem {
+    history -d $(history 1)
+    local agree
+    read -e -p "Are you sure you want to remove all of the .helper.sh files? Type 'yes' to agree. " agree
+    if [ "${agree}" == "yes" ]; then
+        history -s "rm ${DIR}/.helper.*"
+        rm "${DIR}/.helper.sh"
+    fi
+}
+
 function .sc {
     history -d $(history 1)
     pr_h_i "Checking '$1' service status."
@@ -337,9 +347,11 @@ function .u {
 }
 
 function .v {
-    history -d $(history 1)
+    if [ -z $1 ]; then
+        history -d $(history 1)
+    fi
     pr_h_i "Name     : $name \\nVersion  : $version \\nLocation : $DIR"
     pr_br
 }
 
-.v
+.v -
