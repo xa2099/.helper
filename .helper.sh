@@ -373,8 +373,8 @@ function .sx {
 
 function .t {
     history -d $(history 1)
-    history -s "wget -q --show-progress -O ${TEMPLATES_LIST} ${REPO}/.helper.t"
-    wget -q --show-progress -O "${TEMPLATES_LIST}" "${REPO}/.helper.t"
+    history -s "wget -q -O ${TEMPLATES_LIST} ${REPO}/.helper.t"
+    wget -q -O "${TEMPLATES_LIST}" "${REPO}/.helper.t"
     if [ -f "${TEMPLATES_LIST}" ]; then
         local list
         mapfile -t list < "${TEMPLATES_LIST}"
