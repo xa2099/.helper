@@ -32,7 +32,7 @@ alias .l="ls -alh --group-directories-first"
 # Quick reference.
 
 read -r -d '' usage << BLOCK
-
+.
     .c      Command to run.
     .ch     Command to load as last history item.
     .cx     Command to remove from the list.
