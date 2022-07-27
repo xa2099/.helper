@@ -26,6 +26,7 @@ EDITOR="nano"
 read -r -d '' usage << BLOCK
 
 .c      Command to run.
+.ch     Command to load as last history item.
 .cx     Command to remove from the list.
 
 .d      Directory to change to.
@@ -39,10 +40,10 @@ read -r -d '' usage << BLOCK
 .sx     Service stop.
 .sr     Service restart.
 
-.h      This text. :)
-.v      Script name and version.
-.i      Systen info.
-.s      Script service.
+.h      This text.
+.v      Script version.
+.o      Output all lists.
+.rem    Remove helper.sh and associated files.
 
 BLOCK
 
@@ -92,13 +93,40 @@ function .c {
             done
         else
             pr_br
-            pr_p_w "Command List is empty. Run '.h' for help on creating one."
+            pr_p_w "Command List is empty."
+            pr_br
+            pr_p_d "To add command to the list run '.c' followd by the command."
+            pr_p_d "Example: .c ls -al /etc"
             pr_br
         fi
     else
         echo "$@" >> "${COMMANDS_LIST}"
         history -s "$@"
         eval "$@"
+    fi
+}
+
+function .ch {
+    history -d $(history 1)
+    if [ -z $1 ]; then
+        if [ -f "${COMMANDS_LIST}" ]; then
+            local list
+            mapfile -t list < "${COMMANDS_LIST}"
+            pr_h_d "Select Command to Remove From the List"
+            select option in "${list[@]}"; do
+                history -s "${option}"
+                pr_p_i "Loaded into history : '$option'. Use Up Arrow to get."
+                pr_br
+                break
+            done
+        else
+            pr_br
+            pr_p_w "Command List is empty."
+            pr_br
+            pr_p_d "To add command to the list run '.c' followd by the command."
+            pr_p_d "Example: .c ls -al /etc"
+            pr_br
+        fi
     fi
 }
 
@@ -118,7 +146,7 @@ function .cx {
             done
         else
             pr_br
-            pr_p_w "Command List is empty. Run '.h' for help on creating one."
+            pr_p_w "Command List is empty. Nothing to remove."
             pr_br
         fi
     fi
@@ -147,7 +175,10 @@ function .d {
             done
         else
             pr_br
-            pr_p_w "Directory List is empty. Run '.h' for help on creating one."
+            pr_p_w "Directory List is empty."
+            pr_br
+            pr_p_d "To add director to the list and change to it run '.d' followd by the path."
+            pr_p_d "Example: .d /var/log"
             pr_br
         fi
     else
@@ -177,7 +208,9 @@ function .dx {
                 break
             done
         else
-            pr_h_w "No Directory List created so far."; pr_br;
+            pr_br
+            pr_p_w "Directory List is empty. Nothing to remove."
+            pr_br
         fi
     fi
 }
@@ -202,14 +235,22 @@ function .f {
             done
         else
             pr_br
-            pr_p_w "No File List created so far. Run '.h' for help on creating one."
+            pr_p_w "Files List is empty."
+            pr_br
+            pr_p_d "To add file to the list and open it for editing run '.f' followd by the path."
+            pr_p_d "Example: .f /var/log"
             pr_br
         fi
     else
         if [ -f $@ ]; then
             echo "$@" >> "${FILES_LIST}"
-            history -s "${EDITOR} $@"
-            eval "${EDITOR} $@"
+            if [ -w $@ ]; then
+                history -s "${EDITOR} $@"
+                eval "${EDITOR} $@"
+            else
+                history -s "sudo ${EDITOR} $@"
+                eval "sudo ${EDITOR} $@"
+            fi
         else
             pr_br
             pr_p_e "Error : File '$@' does not exist."
@@ -221,7 +262,6 @@ function .f {
 function .fx {
     history -d $(history 1)
     if [ -z $1 ]; then
-        if [ -f "${FILES_LIST}" ]; then
             local list
             mapfile -t list < "${FILES_LIST}"
             pr_h_d "Select File to Remove From the List:"
@@ -244,7 +284,7 @@ function .h {
     history -d $(history 1)
     pr_h_i "$name Usage Help"
     pr_br
-    pr_p_d "$usage"
+    pr_p "$usage"
     pr_br
 }
 
@@ -252,23 +292,30 @@ function .o {
     history -d $(history 1)
     pr_h_d "Directory List | ${DIRECTORIES_LIST}"
     history -s "cat ${DIRECTORIES_LIST}"
-    cat "${DIRECTORIES_LIST}"
+    if [ -f "${DIRECTORIES_LIST}" ]; then
+        cat "${DIRECTORIES_LIST}"
+    fi
     pr_h_d "Command List | ${COMMANDS_LIST}"
     history -s "cat ${COMMANDS_LIST}"
-    cat "${COMMANDS_LIST}"
+    if [ -f "${COMMANDS_LIST}" ]; then
+        cat "${COMMANDS_LIST}"
+    fi
     pr_h_d "File List | ${FILES_LIST}"
     history -s "cat ${FILES_LIST}"
-    cat "${FILES_LIST}"
+    if [ -f "${FILES_LIST}" ]; then
+        cat "${FILES_LIST}"
+    fi
     pr_br
 }
 
 function .rem {
     history -d $(history 1)
     local agree
-    read -e -p "Are you sure you want to remove all of the .helper.sh files? Type 'yes' to agree. " agree
+    pr_h_e "Are you sure you want to remove all of the .helper.sh files?"
+    read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
         history -s "rm ${DIR}/.helper.*"
-        rm "${DIR}/.helper.sh"
+        eval "rm ${DIR}/.helper.*"
     fi
 }
 
@@ -291,7 +338,7 @@ function .sr {
 
 function .ss {
     history -d $(history 1)
-    pr_h_i "Starting '$1' service."
+    pr_h_i "Starting '$1' service.".template
     history -s "systemctl start $1"
     systemctl start "$1"
     pr_h_i "Checking '$1' service status."
