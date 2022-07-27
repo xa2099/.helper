@@ -21,7 +21,7 @@ Activate the script using the "source" command.
 
 `source .helper.sh`
 
-The script needs to be activated every time after you logout. To make it 
+The script needs to be activated every time you login. To make it 
 permanent add the above command to the "~/.profile" file. 
 
 
