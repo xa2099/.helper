@@ -1,5 +1,5 @@
 name=".helper.sh"
-version="2022.07.27"
+version="2022.07.28"
 
 # ======================================================================================================================
 # Configuration.
@@ -110,9 +110,9 @@ function .c {
             pr_br
         fi
     else
-        echo "$@" >> "${COMMANDS_LIST}"
-        history -s "$@"
-        eval "$@"
+        echo "${*@Q}" >> "${COMMANDS_LIST}"
+        history -s "${*@Q}"
+        eval "${*@Q}"
     fi
 }
 
