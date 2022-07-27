@@ -110,9 +110,9 @@ function .c {
             pr_br
         fi
     else
-        echo "${*@$}" >> "${COMMANDS_LIST}"
-        history -s "${*@$}"
-        eval "${*@$}"
+        echo "${*@}" >> "${COMMANDS_LIST}"
+        history -s "${*@}"
+        eval "${*@}"
     fi
 }
 
