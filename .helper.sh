@@ -154,6 +154,7 @@ function .cx {
 
 function .d {
     history -d $(history 1)
+    show_help=0
     if [ -z $1 ]; then
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
@@ -238,7 +239,8 @@ function .f {
             pr_p_w "Files List is empty."
             pr_br
             pr_p_d "To add file to the list and open it for editing run '.f' followd by the path."
-            pr_p_d "Example: .f /var/log"
+            pr_p_d "If you don't have write permissions to the file it will be opened using 'sudo' automatically."
+            pr_p_d "Example: .f /etc/sudoers"
             pr_br
         fi
     else
@@ -262,21 +264,20 @@ function .f {
 function .fx {
     history -d $(history 1)
     if [ -z $1 ]; then
-            local list
-            mapfile -t list < "${FILES_LIST}"
-            pr_h_d "Select File to Remove From the List:"
-            select option in "${list[@]}"; do
-                history -s "sed -i '${REPLY}d' ${FILES_LIST}"
-                eval "sed -i '${REPLY}d' ${FILES_LIST}"
-                pr_p_i "Removed : $REPLY) $option"
-                pr_br
-                break
-            done
-        else
+        local list
+        mapfile -t list < "${FILES_LIST}"
+        pr_h_d "Select File to Remove From the List:"
+        select option in "${list[@]}"; do
+            history -s "sed -i '${REPLY}d' ${FILES_LIST}"
+            eval "sed -i '${REPLY}d' ${FILES_LIST}"
+            pr_p_i "Removed : $REPLY) $option"
             pr_br
-            pr_p_w "No File List created so far. Run '.h' for help on creating one."
-            pr_br
-        fi
+            break
+        done
+    else
+        pr_br
+        pr_p_w "No File List created so far. Nothing to remove."
+        pr_br
     fi
 }
 
