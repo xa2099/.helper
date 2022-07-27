@@ -286,8 +286,8 @@ function .fx {
 function .h {
     history -d $(history 1)
     if [ ! -f "${HELP}" ]; then
-        history -s "wget -q --show-progress -O ${HELP} ${REPO}/readme.md"
-        wget -q --show-progress -O "${HELP}" "${REPO}/readme.md"
+        history -s "wget -q -O ${HELP} ${REPO}/readme.md"
+        wget -q -O "${HELP}" "${REPO}/readme.md"
     fi
     pr_h_i "$name Usage Help"
     pr_br
@@ -382,12 +382,12 @@ function .t {
         rm "${TEMPLATES_LIST}"
         pr_h_d "Select Template From the List:"
         select option in "${list[@]}"; do
-            history -s "wget -q --show-progress -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
-            history -s "wget -q --show-progress -O ${COMMANDS_LIST} ${REPO}/${option}/.helper.c"
-            history -s "wget -q --show-progress -O ${FILES_LIST} ${REPO}/${option}/.helper.f"
-            wget -q --show-progress -O "${DIRECTORIES_LIST}" "${REPO}/${option}/.helper.d"
-            wget -q --show-progress -O "${COMMANDS_LIST}" "${REPO}/${option}/.helper.c"
-            wget -q --show-progress -O "${FILES_LIST}" "${REPO}/${option}/.helper.f"
+            history -s "wget -q -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
+            history -s "wget -q -O ${COMMANDS_LIST} ${REPO}/${option}/.helper.c"
+            history -s "wget -q -O ${FILES_LIST} ${REPO}/${option}/.helper.f"
+            wget -q -O "${DIRECTORIES_LIST}" "${REPO}/${option}/.helper.d"
+            wget -q -O "${COMMANDS_LIST}" "${REPO}/${option}/.helper.c"
+            wget -q -O "${FILES_LIST}" "${REPO}/${option}/.helper.f"
             pr_p_i "Downloaded : '$option' template."
             pr_br
             break
