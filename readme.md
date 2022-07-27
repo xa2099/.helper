@@ -44,7 +44,8 @@ Quick Reference
 - `.sr`     Service restart.
 
 - `.q`      Quick reference.
-- `.h`      Full hlep.
+- `.h`      Full help.
+- `.t`      Templates.
 - `.v`      Script version.
 - `.o`      Output all lists.
 - `.rem`    Remove helper.sh and associated files.
