@@ -25,7 +25,7 @@ EDITOR="nano"
 # Aliases.
 
 alias .dp="cd -"
-alial .l="ls -alh --group-directories-first"
+alias .l="ls -alh --group-directories-first"
 
 
 # ======================================================================================================================
