@@ -15,13 +15,13 @@ COMMANDS_LIST="${DIR}/.helper.c"
 DIRECTORIES_LIST="${DIR}/.helper.d"
 FILES_LIST="${DIR}/.helper.f"
 TEMPLATES_LIST="${DIR}/.helper.t"
+HELP="${DIR}/.helper.md"
 
 # Editor
 EDITOR="nano"
 
-
 # ======================================================================================================================
-# Help.
+# Quick reference.
 
 read -r -d '' usage << BLOCK
 
@@ -40,7 +40,8 @@ read -r -d '' usage << BLOCK
 .sx     Service stop.
 .sr     Service restart.
 
-.h      This text.
+.q      This file.
+.h      Full hlep.
 .v      Script version.
 .o      Output all lists.
 .rem    Remove helper.sh and associated files.
@@ -283,9 +284,13 @@ function .fx {
 
 function .h {
     history -d $(history 1)
+    if [ ! -f "${HELP}" ]; then
+        history -s "wget -q --show-progress -O ${HELP} ${REPO}/readme.md"
+        wget -q --show-progress -O "${HELP}" "${REPO}/readme.md"
+    fi
     pr_h_i "$name Usage Help"
     pr_br
-    pr_p "$usage"
+    cat "${HELP}"
     pr_br
 }
 
@@ -306,6 +311,14 @@ function .o {
     if [ -f "${FILES_LIST}" ]; then
         cat "${FILES_LIST}"
     fi
+    pr_br
+}
+
+function .q {
+    history -d $(history 1)
+    pr_h_i "$name Usage Help"
+    pr_br
+    pr_p "$usage"
     pr_br
 }
 
