@@ -179,7 +179,7 @@ function .d {
             pr_br
             pr_p_w "Directory List is empty."
             pr_br
-            pr_p_d "To add director to the list and change to it run '.d' followd by the path."
+            pr_p_d "To add director to the list and change to it run '.d' followd by the full path."
             pr_p_d "Example: .d /var/log"
             pr_br
         fi
@@ -239,7 +239,7 @@ function .f {
             pr_br
             pr_p_w "Files List is empty."
             pr_br
-            pr_p_d "To add file to the list and open it for editing run '.f' followd by the path."
+            pr_p_d "To add file to the list and open it for editing run '.f' followed by the full path."
             pr_p_d "If you don't have write permissions to the file it will be opened using 'sudo' automatically."
             pr_p_d "Example: .f /etc/sudoers"
             pr_br
