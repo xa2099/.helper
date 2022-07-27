@@ -311,10 +311,10 @@ function .t {
         pr_h_d "Select Template From the List:"
         select option in "${list[@]}"; do
             history -s "wget -q --show-progress -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
-            wget -q --show-progress -O "${DIRECTORIES_LIST}" "${REPO}/${option}/.helper.d"
             history -s "wget -q --show-progress -O ${COMMANDS_LIST} ${REPO}/${option}/.helper.c"
-            wget -q --show-progress -O "${COMMANDS_LIST}" "${REPO}/${option}/.helper.c"
             history -s "wget -q --show-progress -O ${FILES_LIST} ${REPO}/${option}/.helper.f"
+            wget -q --show-progress -O "${DIRECTORIES_LIST}" "${REPO}/${option}/.helper.d"
+            wget -q --show-progress -O "${COMMANDS_LIST}" "${REPO}/${option}/.helper.c"
             wget -q --show-progress -O "${FILES_LIST}" "${REPO}/${option}/.helper.f"
             pr_p_i "Downloaded : '$option' template."
             pr_br
