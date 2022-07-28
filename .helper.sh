@@ -92,7 +92,7 @@ function .c {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_d "Select Command to Execute"
+            pr_h_i "Select Command to Execute"
             select option in "${list[@]}"; do
                 pr_br
                 pr_p_i "Executed : $option"
@@ -122,7 +122,7 @@ function .ch {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_d "Select Command to Copy into History From the List"
+            pr_h_i "Select Command to Copy into History From the List"
             select option in "${list[@]}"; do
                 history -s "${option}"
                 pr_p_i "Loaded into history : '$option'. Use Up Arrow to get."
@@ -146,7 +146,7 @@ function .cx {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_d "Select Command to Remove From the List"
+            pr_h_i "Select Command to Remove From the List"
             select option in "${list[@]}"; do
                 history -s "sed -i '${REPLY}d' ${COMMANDS_LIST}"
                 eval "sed -i '${REPLY}d' ${COMMANDS_LIST}"
@@ -168,7 +168,7 @@ function .d {
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
             mapfile -t list < "${DIRECTORIES_LIST}"
-            pr_h_d "Select Directory to Change to"
+            pr_h_i "Select Directory to Change to"
             select option in "${list[@]}"; do
                 if [ -d $1 ]; then
                     pr_br
@@ -209,7 +209,7 @@ function .dx {
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
             mapfile -t list < "${DIRECTORIES_LIST}"
-            pr_h_d "Select Directory to remove From the List:"
+            pr_h_i "Select Directory to remove From the List:"
             select option in "${list[@]}"; do
                 history -s "sed -i '${REPLY}d' ${DIRECTORIES_LIST}"
                 eval "sed -i '${REPLY}d' ${DIRECTORIES_LIST}"
@@ -231,7 +231,7 @@ function .f {
         if [ -f "${FILES_LIST}" ]; then
             local list
             mapfile -t list < "${FILES_LIST}"
-            pr_h_d "Select File to Edit:"
+            pr_h_i "Select File to Edit:"
             select option in "${list[@]}"; do
                 if [ -f $option ]; then
                     history -s "${E} $option"
@@ -275,7 +275,7 @@ function .fx {
     if [ -z $1 ]; then
         local list
         mapfile -t list < "${FILES_LIST}"
-        pr_h_d "Select File to Remove From the List:"
+        pr_h_i "Select File to Remove From the List:"
         select option in "${list[@]}"; do
             history -s "sed -i '${REPLY}d' ${FILES_LIST}"
             eval "sed -i '${REPLY}d' ${FILES_LIST}"
@@ -304,17 +304,17 @@ function .h {
 
 function .o {
     history -d $(history 1)
-    pr_h_d "Directory List | ${DIRECTORIES_LIST}"
+    pr_h_i "Directory List | ${DIRECTORIES_LIST}"
     history -s "cat ${DIRECTORIES_LIST}"
     if [ -f "${DIRECTORIES_LIST}" ]; then
         cat "${DIRECTORIES_LIST}"
     fi
-    pr_h_d "Command List | ${COMMANDS_LIST}"
+    pr_h_i "Command List | ${COMMANDS_LIST}"
     history -s "cat ${COMMANDS_LIST}"
     if [ -f "${COMMANDS_LIST}" ]; then
         cat "${COMMANDS_LIST}"
     fi
-    pr_h_d "File List | ${FILES_LIST}"
+    pr_h_i "File List | ${FILES_LIST}"
     history -s "cat ${FILES_LIST}"
     if [ -f "${FILES_LIST}" ]; then
         cat "${FILES_LIST}"
@@ -387,7 +387,7 @@ function .t {
         mapfile -t list < "${TEMPLATES_LIST}"
         history -s "rm ${TEMPLATES_LIST}"
         rm "${TEMPLATES_LIST}"
-        pr_h_d "Select Template From the List:"
+        pr_h_i "Select Template From the List:"
         select option in "${list[@]}"; do
             history -s "wget -q -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
             history -s "wget -q -O ${COMMANDS_LIST} ${REPO}/${option}/.helper.c"
