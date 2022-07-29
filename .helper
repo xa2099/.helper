@@ -46,7 +46,7 @@ help=(
 '.t      Templates.'
 '.v      Script version.'
 '.o      Output all lists.'
-'.rem    Remove ".helper" and associated files.'
+'.rem    Remove ".helper" and associated files. Remove ".helper" and associated files.'
 )
 
 
@@ -255,17 +255,23 @@ function .fx {
 
 function .h {
     history -d $(history 1)
-    local width height pad
+    local width height pad long_line
     width=$(tput cols)
     height=$(tput lines)
     pad="$(printf '%0.1s' ' '{1..500})"
+    long_line=0
+    for line in "${help[@]}"; do
+        if [ $long_line -lt ${#line} ]; then
+            long_line=${#line}
+        fi
+    done
     for (( i=0; i<$(((height - ${#help[@]} - 5) / 2)); i++)); do
         printf "\n"
     done
     center "[ Help ]"
     printf "\n"
     for line in "${help[@]}"; do
-        printf '%*.*s%s\n' 0 "$(((width - 50) / 2))" "$pad" "$line"
+        printf '%*.*s%s\n' 0 "$(((width - $long_line) / 2))" "$pad" "$line"
     done
     printf "\n"
     center "~ * ~"
@@ -276,13 +282,35 @@ function .h {
 
 function .hf {
     history -d $(history 1)
+    local width long_line pad
     if [ ! -f "${HELP}" ]; then
         history -s "wget -q -O ${HELP} ${PROJECT_REPO}/readme.md"
         wget -q -O "${HELP}" "${PROJECT_REPO}/readme.md"
     fi
-    header "$NAME Full Help"
-    cat "${HELP} | more"
-    printf "\n\n"
+    if [ -f "${HELP}" ]; then
+        mapfile -t help_lines < "${HELP}"
+        long_line=0
+        for line in "${help_lines[@]}"; do
+            if [ $long_line -lt ${#line} ]; then
+                long_line=${#line}
+            fi
+        done
+        printf "long line : $long_line"
+        pad="$(printf '%0.1s' ' '{1..500})"
+        width=$(tput cols)
+        printf "\n\n\n\n"
+        for line in "${help_lines[@]}"; do
+            printf '%*.*s%s\n' 0 "$(((width - $long_line) / 2))" "$pad" "$line"
+        done
+        printf "\n\n"
+    fi
+}
+
+function .n {
+    history -d $(history 1)
+    for (( i=0; i<$(tput lines); i++)); do
+        printf "\n"
+    done
 }
 
 function .o {
@@ -306,7 +334,7 @@ function .rem {
     history -d $(history 1)
     local agree
     header "Remove .helper"
-    printf "Are you sure you want to remove .helper and all it's files."
+    printf "Are you sure you want to remove .helper and all associated files."
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
         history -s "rm ${SCRIPT_DIR}/.helper.*"
