@@ -1,24 +1,25 @@
-name=".helper.sh"
-version="2022.07.27"
+name=".helper"
+version="2022.07.29"
 
 # ======================================================================================================================
 # Configuration.
 
-# Project Repository
-REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
-
-# Directory of this script.
-DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-# Local list files.
-COMMANDS_LIST="${DIR}/.helper.c"
-DIRECTORIES_LIST="${DIR}/.helper.d"
-FILES_LIST="${DIR}/.helper.f"
-TEMPLATES_LIST="${DIR}/.helper.t"
-HELP="${DIR}/.helper.md"
+# Project repo.
+PROJECT_REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
 
 # Editor
 EDITOR="nano"
+
+# Script directory.
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Local list files.
+            THIS="${SCRIPT_DIR}/.helper"
+   COMMANDS_LIST="${SCRIPT_DIR}/.helper.c"
+DIRECTORIES_LIST="${SCRIPT_DIR}/.helper.d"
+      FILES_LIST="${SCRIPT_DIR}/.helper.f"
+  TEMPLATES_LIST="${SCRIPT_DIR}/.helper.t"
+            HELP="${SCRIPT_DIR}/.helper.md"
 
 
 # ======================================================================================================================
@@ -29,9 +30,9 @@ alias .l="ls -alh --group-directories-first"
 
 
 # ======================================================================================================================
-# Quick reference.
+# Help.
 
-read -r -d '' usage << BLOCK
+read -r -d '' help << BLOCK
 
 .c      Command to run.
 .ch     Command to load as last history item.
@@ -48,39 +49,53 @@ read -r -d '' usage << BLOCK
 .sx     Service stop.
 .sr     Service restart.
 
-.q      Quick refence.
-.h      Full help.
+.h      Help.
+.hf     Help Full.
 .t      Templates.
 .v      Script version.
 .o      Output all lists.
-.rem    Remove helper.sh and associated files.
+.rem    Remove ".helper" and associated files.
 
 BLOCK
 
 
 # ======================================================================================================================
-# Implement colours and formating.
+# GUI Elements
 
-COLORS=${BS_COLORS:-$(tput colors 2>/dev/null || echo 0)}
-if [ $? -eq 0 ] && [ "$COLORS" -gt 2 ]; then
-    RC='\033[31m'; GC='\033[32m'; BC='\033[34m'; YC='\033[33m'; EC='\033[0m';
-else
-    RC=""; GC=""; BC=""; YC=""; EC="";
-fi
+function center {
+    local width pad char
+    [[ -z $2 ]] && char=' ' || char="$2"
+    width="$(tput cols)"
+    pad="$(printf '%0.1s' "$char"{1..500})"
+    printf '\n\n%*.*s%s%*.*s\n' 0 "$(((width-2-${#1})/2))" "$pad" "$1" 0 "$(((width-2-${#1})/2))" "$pad"
+}
 
-function pr_br { printf "\n"; }  # Print New Line.
-function pr_hr { printf "=%.0s" {1..120} ; pr_br; } # Print Horizontal Rule.
-function h { printf "$2\n"; pr_hr; printf "%b" "${1}"; pr_br; pr_hr; printf "${EC}"; }
-function pr_h { h "${1}" "${EC}"; } # Print Header.
-function pr_h_e { h "${1}" "${RC}"; } # Print Header Error.
-function pr_h_i { h "${1}" "${GC}"; } # Print Header Info.
-function pr_h_d { h "${1}" "${BC}"; } # Print Header Debug.
-function pr_h_w { h "${1}" "${YC}"; } # Print Header Warning.
-function pr_p { printf "%s$@\n"; } # Print Paragraph.
-function pr_p_e { printf "${RC}%s$@${EC}\n" 1>&2; } # Print Paragraph Error.
-function pr_p_i { printf "${GC}%s$@${EC}\n"; } # Print Paragraph Info.
-function pr_p_d { printf "${BC}%s$@${EC}\n"; }  # Print Paragraph Debug.
-function pr_p_w { printf "${YC}%s$@${EC}\n"; } # Print Paragraph Warning.
+function splash {
+    local str width height length
+    str="$@"
+    length=${#str}
+    width=$(tput cols)
+    height=$(tput lines)
+    for (( i=1; i<$((height / 2)); i++)); do
+        printf "\n"
+    done
+    center "$str"
+    for (( i=1; i<$((height / 2)); i++)); do
+        printf "\n"
+    done
+}
+
+function header {
+    local width pad char
+    [[ -z $2 ]] && char='-' || char="$2"
+    width="$(tput cols)"
+    pad="$(printf '%0.1s' "$char"{1..500})"
+    printf '\n\n\n%*.*s%s%*.*s\n\n' 0 3 "$pad" "[ $1 ]" 0 "$((width-10-${#1}))" "$pad"
+}
+
+function msg {
+    printf "\n---[ %s\n\n\n" "$1"
+}
 
 
 # ======================================================================================================================
@@ -92,27 +107,18 @@ function .c {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_i "Select Command to Execute"
+            header "Execute"
             select option in "${list[@]}"; do
-                pr_br
-                pr_p_i "Executed : $option"
-                pr_br
+                msg "Executed : $option"
                 history -s "$option"
                 eval "$option"
                 break
             done
-        else
-            pr_br
-            pr_p_w "Command List is empty."
-            pr_br
-            pr_p_d "To add command to the list run '.c' followd by the command."
-            pr_p_d "Example: .c ls -al /etc"
-            pr_br
         fi
     else
-        echo "${@}" >> "${COMMANDS_LIST}"
-        history -s "${@}"
-        eval "${@}"
+        echo "$@" >> "${COMMANDS_LIST}"
+        history -s "$@"
+        eval "$@"
     fi
 }
 
@@ -122,20 +128,12 @@ function .ch {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_i "Select Command to Copy into History From the List"
+            header "Load"
             select option in "${list[@]}"; do
                 history -s "${option}"
-                pr_p_i "Loaded into history : '$option'. Use Up Arrow to get."
-                pr_br
+                msg "Loaded : '$option'"
                 break
             done
-        else
-            pr_br
-            pr_p_w "Command List is empty."
-            pr_br
-            pr_p_d "To add command to the list run '.c' followd by the command."
-            pr_p_d "Example: .c ls -al /etc"
-            pr_br
         fi
     fi
 }
@@ -146,18 +144,12 @@ function .cx {
         if [ -f "${COMMANDS_LIST}" ]; then
             local list
             mapfile -t list < "${COMMANDS_LIST}"
-            pr_h_i "Select Command to Remove From the List"
+            header "Remove"
             select option in "${list[@]}"; do
-                history -s "sed -i '${REPLY}d' ${COMMANDS_LIST}"
                 eval "sed -i '${REPLY}d' ${COMMANDS_LIST}"
-                pr_p_i "Removed : $REPLY) $option"
-                pr_br
+                msg "Removed : $REPLY) $option"
                 break
             done
-        else
-            pr_br
-            pr_p_w "Command List is empty. Nothing to remove."
-            pr_br
         fi
     fi
 }
@@ -168,37 +160,24 @@ function .d {
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
             mapfile -t list < "${DIRECTORIES_LIST}"
-            pr_h_i "Select Directory to Change to"
+            header "Change To"
             select option in "${list[@]}"; do
                 if [ -d $1 ]; then
-                    pr_br
-                    pr_p_i "Changed to : $option"
-                    pr_br
+                    msg "Changed to : $option"
                     history -s "cd $option"
                     eval "cd $option"
                     break
                 else
-                    pr_br
-                    pr_p_e "Error : Directory '$1' does not exist."
-                    pr_br
+                    msg "Error : '$1' Does not exist."
                 fi
             done
-        else
-            pr_br
-            pr_p_w "Directory List is empty."
-            pr_br
-            pr_p_d "To add director to the list and change to it run '.d' followd by the full path."
-            pr_p_d "Example: .d /var/log"
-            pr_br
         fi
     else
         if [ -d $@ ]; then
             echo "$@" >> "${DIRECTORIES_LIST}"
             eval "cd $@"
         else
-            pr_br
-            pr_p_e "Directory '$@' does not exist."
-            pr_br
+             msg "Error : '$@' Does not exist."
         fi
     fi
 }
@@ -209,18 +188,12 @@ function .dx {
         if [ -f "${DIRECTORIES_LIST}" ]; then
             local list
             mapfile -t list < "${DIRECTORIES_LIST}"
-            pr_h_i "Select Directory to remove From the List:"
+            header "Remove"
             select option in "${list[@]}"; do
-                history -s "sed -i '${REPLY}d' ${DIRECTORIES_LIST}"
                 eval "sed -i '${REPLY}d' ${DIRECTORIES_LIST}"
-                pr_p_i "Removed : $REPLY) $option"
-                pr_br
+                msg "Removed : $REPLY) $option"
                 break
             done
-        else
-            pr_br
-            pr_p_w "Directory List is empty. Nothing to remove."
-            pr_br
         fi
     fi
 }
@@ -231,26 +204,16 @@ function .f {
         if [ -f "${FILES_LIST}" ]; then
             local list
             mapfile -t list < "${FILES_LIST}"
-            pr_h_i "Select File to Edit:"
+            header "Edit:"
             select option in "${list[@]}"; do
                 if [ -f $option ]; then
                     history -s "${E} $option"
                     eval "${EDITOR} $option"
                     break
                 else
-                    pr_br
-                    pr_p_e "Error : File '$option' does not exist."
-                    pr_br
+                    msg "Error : '$option' File does not exist."
                 fi
             done
-        else
-            pr_br
-            pr_p_w "Files List is empty."
-            pr_br
-            pr_p_d "To add file to the list and open it for editing run '.f' followed by the full path."
-            pr_p_d "If you don't have write permissions to the file it will be opened using 'sudo' automatically."
-            pr_p_d "Example: .f /etc/sudoers"
-            pr_br
         fi
     else
         if [ -f $@ ]; then
@@ -263,9 +226,7 @@ function .f {
                 eval "sudo ${EDITOR} $@"
             fi
         else
-            pr_br
-            pr_p_e "Error : File '$@' does not exist."
-            pr_br
+            msg "Error : '$@' File does not exist."
         fi
     fi
 }
@@ -275,153 +236,138 @@ function .fx {
     if [ -z $1 ]; then
         local list
         mapfile -t list < "${FILES_LIST}"
-        pr_h_i "Select File to Remove From the List:"
+        header "Remove"
         select option in "${list[@]}"; do
-            history -s "sed -i '${REPLY}d' ${FILES_LIST}"
             eval "sed -i '${REPLY}d' ${FILES_LIST}"
-            pr_p_i "Removed : $REPLY) $option"
-            pr_br
+            msg "Removed : $REPLY) $option"
             break
         done
-    else
-        pr_br
-        pr_p_w "No File List created so far. Nothing to remove."
-        pr_br
     fi
 }
 
-function .h {
+function .hf {
     history -d $(history 1)
     if [ ! -f "${HELP}" ]; then
-        history -s "wget -q -O ${HELP} ${REPO}/readme.md"
-        wget -q -O "${HELP}" "${REPO}/readme.md"
+        history -s "wget -q -O ${HELP} ${PROJECT_REPO}/readme.md"
+        wget -q -O "${HELP}" "${PROJECT_REPO}/readme.md"
     fi
-    pr_h_i "$name Usage Help"
-    pr_br
+    header "$name Usage Help"
     cat "${HELP}"
-    pr_br
+    printf "\n\n"
 }
 
 function .o {
     history -d $(history 1)
-    pr_h_i "Directory List | ${DIRECTORIES_LIST}"
-    history -s "cat ${DIRECTORIES_LIST}"
+    header ".helper.d | Directores"
     if [ -f "${DIRECTORIES_LIST}" ]; then
         cat "${DIRECTORIES_LIST}"
     fi
-    pr_h_i "Command List | ${COMMANDS_LIST}"
-    history -s "cat ${COMMANDS_LIST}"
+    header ".helper.c | Commands"
     if [ -f "${COMMANDS_LIST}" ]; then
         cat "${COMMANDS_LIST}"
     fi
-    pr_h_i "File List | ${FILES_LIST}"
-    history -s "cat ${FILES_LIST}"
+    header ".helper.f | Files"
     if [ -f "${FILES_LIST}" ]; then
         cat "${FILES_LIST}"
     fi
-    pr_br
+    printf "\n\n"
 }
 
-function .q {
+function .h {
     history -d $(history 1)
-    pr_h_i "$name Quick Help"
-    pr_br
-    pr_p "$usage"
-    pr_br
+    header "$name Quick Help"
+    printf "$usage"
+    printf "\n\n"
 }
 
 function .rem {
     history -d $(history 1)
     local agree
-    pr_h_e "Are you sure you want to remove all of the .helper.sh files?"
+    header "Remove .helper"
+    printf "Are you sure you want to remove .helper and all it's files."
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        history -s "rm ${DIR}/.helper.*"
-        eval "rm ${DIR}/.helper.*"
+        history -s "rm ${SCRIPT_DIR}/.helper.*"
+        eval "rm ${SCRIPT_DIR}/.helper.*"
     fi
 }
 
 function .sc {
     history -d $(history 1)
-    pr_h_i "Checking '$1' service status."
+    header "Checking $1"
     history -s "systemctl status $1"
     systemctl status "$1"
 }
 
 function .sr {
     history -d $(history 1)
-    pr_h_i "Restarting '$1' service."
+    header "Restarting $1"
     history -s "systemctl restart $1"
     systemctl restart "$1"
-    pr_h_i "Checking '$1' service status."
+    header "Checking $1"
     history -s "systemctl status $1"
     systemctl status "$1"
 }
 
 function .ss {
     history -d $(history 1)
-    pr_h_i "Starting '$1' service.".template
+    header "Starting $1'."
     history -s "systemctl start $1"
     systemctl start "$1"
-    pr_h_i "Checking '$1' service status."
+    header "Checking $1"
     history -s "systemctl status $1"
     systemctl status "$1"
 }
 
 function .sx {
     history -d $(history 1)
-    pr_h_i "Stopping '$1' service."
+    header "Stopping $1"
     history -s "systemctl stop $1"
     systemctl stop "$1"
-    pr_h_i "Checking '$1' service status."
+    header "Checking $1."
     history -s "systemctl status $1"
     systemctl status "$1"
 }
 
 function .t {
     history -d $(history 1)
-    history -s "wget -q -O ${TEMPLATES_LIST} ${REPO}/.helper.t"
-    wget -q -O "${TEMPLATES_LIST}" "${REPO}/.helper.t"
+    history -s "wget -q -O ${TEMPLATES_LIST} ${PROJECT_REPO}/.helper.t"
+    wget -q -O "${TEMPLATES_LIST}" "${PROJECT_REPO}/.helper.t"
     if [ -f "${TEMPLATES_LIST}" ]; then
         local list
         mapfile -t list < "${TEMPLATES_LIST}"
         history -s "rm ${TEMPLATES_LIST}"
         rm "${TEMPLATES_LIST}"
-        pr_h_i "Select Template From the List:"
+        header "Load Template"
         select option in "${list[@]}"; do
-            history -s "wget -q -O ${DIRECTORIES_LIST} ${REPO}/${option}/.helper.d"
-            history -s "wget -q -O ${COMMANDS_LIST} ${REPO}/${option}/.helper.c"
-            history -s "wget -q -O ${FILES_LIST} ${REPO}/${option}/.helper.f"
-            wget -q -O "${DIRECTORIES_LIST}" "${REPO}/${option}/.helper.d"
-            wget -q -O "${COMMANDS_LIST}" "${REPO}/${option}/.helper.c"
-            wget -q -O "${FILES_LIST}" "${REPO}/${option}/.helper.f"
-            pr_p_i "Downloaded : '$option' template."
-            pr_br
+            history -s "wget -q -O ${DIRECTORIES_LIST} ${PROJECT_REPO}/${option}/.helper.d"
+            history -s "wget -q -O ${COMMANDS_LIST} ${PROJECT_REPO}/${option}/.helper.c"
+            history -s "wget -q -O ${FILES_LIST} ${PROJECT_REPO}/${option}/.helper.f"
+            wget -q -O "${DIRECTORIES_LIST}" "${PROJECT_REPO}/${option}/.helper.d"
+            wget -q -O "${COMMANDS_LIST}" "${PROJECT_REPO}/${option}/.helper.c"
+            wget -q -O "${FILES_LIST}" "${PROJECT_REPO}/${option}/.helper.f"
+            msg "Downloaded : '$option' template."
             break
         done
     else
-        pr_br
-        pr_p_e "Templates List file does not exist."
-        pr_br
+        msg "Error : Could not get template list."
     fi
 }
 
 function .u {
     history -d $(history 1)
-    pr_h_i "Updating to the latest version."
-    pr_p_i "Current Version : $version"
-    history -s "wget -q -O ${DIR}/.helper.sh ${REPO}/.helper.sh"
-    wget -q -O "${DIR}/.helper.sh" "${REPO}/.helper.sh"
-    source "${DIR}/.helper.sh"
+    header "Updating"
+    msg "Current Version : $version"
+    history -s "wget -q -O ${THIS} ${PROJECT_REPO}/.helper"
+    wget -q -O "${THIS}" "${PROJECT_REPO}/.helper"
+    source "${THIS}"
 }
 
 function .v {
     if [ -z $1 ]; then
         history -d $(history 1)
     fi
-    pr_h_i "Name     : $name \\nVersion  : $version \\nLocation : $DIR"
-    pr_p_w "Execute '.q' for quick reference or '.h' for full help."
-    pr_br
+    splash "$name  |  $version"
 }
 
 .v -
