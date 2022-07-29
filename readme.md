@@ -15,11 +15,11 @@ Installing
 
 Copy the script to your system using wget. Home directory is recommended.
 
-`wget https://raw.githubusercontent.com/xa2099/.helper.sh/main/.helper.sh`
+`wget https://raw.githubusercontent.com/xa2099/.helper/main/.helper`
 
 Activate the script using the "source" command.
 
-`source .helper.sh`
+`source .helper`
 
 The script needs to be activated every time you login. To make it 
 permanent add the above command to the "~/.profile" file. 
@@ -43,8 +43,8 @@ Quick Reference
 - `.sx`     Service stop.
 - `.sr`     Service restart.
 
-- `.q`      Quick reference.
-- `.h`      Full help.
+- `.h`      Help.
+- `.hf`     Help Full.
 - `.t`      Templates.
 - `.v`      Script version.
 - `.o`      Output all lists.
