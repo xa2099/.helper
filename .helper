@@ -1,5 +1,5 @@
-name=".helper"
-version="22.7.29"
+NAME=".helper"
+VERSION="22.7.29"
 
 # ======================================================================================================================
 # Configuration.
@@ -280,7 +280,7 @@ function .hf {
         history -s "wget -q -O ${HELP} ${PROJECT_REPO}/readme.md"
         wget -q -O "${HELP}" "${PROJECT_REPO}/readme.md"
     fi
-    header "$name Full Help"
+    header "$NAME Full Help"
     cat "${HELP} | more"
     printf "\n\n"
 }
@@ -378,10 +378,9 @@ function .t {
 
 function .u {
     history -d $(history 1)
-    header "Updating"
-    msg "Current Version : $version"
     history -s "wget -q -O ${THIS} ${PROJECT_REPO}/.helper"
     wget -q -O "${THIS}" "${PROJECT_REPO}/.helper"
+    history -s source "source ${THIS}"
     source "${THIS}"
 }
 
@@ -389,7 +388,7 @@ function .v {
     if [ -z $1 ]; then
         history -d $(history 1)
     fi
-    splash "$name  |  $version"
+    splash "$NAME  |  $VERSION"
 }
 
 .v -
