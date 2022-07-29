@@ -4,7 +4,7 @@
 
 -----.helper.c
 source.helper
-ls-al/etc
+ls -al /etc
 
 -----.helper.f
 /etc/sudoers
