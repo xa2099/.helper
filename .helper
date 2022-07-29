@@ -15,10 +15,10 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Local list files.
             THIS="${SCRIPT_DIR}/.helper"
+            TEMP="${SCRIPT_DIR}/.helper.temp"
    COMMANDS_LIST="${SCRIPT_DIR}/.helper.c"
 DIRECTORIES_LIST="${SCRIPT_DIR}/.helper.d"
       FILES_LIST="${SCRIPT_DIR}/.helper.f"
-  TEMPLATES_LIST="${SCRIPT_DIR}/.helper.t"
             HELP="${SCRIPT_DIR}/.helper.md"
 
 
@@ -315,15 +315,15 @@ function .n {
 
 function .o {
     history -d $(history 1)
-    header ".helper.d | Directores"
+    printf "\n%b" "-----.helper.d\n"
     if [ -f "${DIRECTORIES_LIST}" ]; then
         cat "${DIRECTORIES_LIST}"
     fi
-    header ".helper.c | Commands"
+    printf "\n%b" "-----.helper.c\n"
     if [ -f "${COMMANDS_LIST}" ]; then
         cat "${COMMANDS_LIST}"
     fi
-    header ".helper.f | Files"
+    printf "\n%b" "-----.helper.f\n"
     if [ -f "${FILES_LIST}" ]; then
         cat "${FILES_LIST}"
     fi
@@ -381,22 +381,28 @@ function .sx {
 
 function .t {
     history -d $(history 1)
-    history -s "wget -q -O ${TEMPLATES_LIST} ${PROJECT_REPO}/.helper.t"
-    wget -q -O "${TEMPLATES_LIST}" "${PROJECT_REPO}/.helper.t"
-    if [ -f "${TEMPLATES_LIST}" ]; then
-        local list
-        mapfile -t list < "${TEMPLATES_LIST}"
-        history -s "rm ${TEMPLATES_LIST}"
-        rm "${TEMPLATES_LIST}"
+    wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/.list"
+    if [ -f "${TEMP}" ]; then
+        local templates template target
+        mapfile -t templates < "${TEMP}"
+        rm "${TEMP}"
         header "Load Template"
-        select option in "${list[@]}"; do
-            history -s "wget -q -O ${DIRECTORIES_LIST} ${PROJECT_REPO}/${option}/.helper.d"
-            history -s "wget -q -O ${COMMANDS_LIST} ${PROJECT_REPO}/${option}/.helper.c"
-            history -s "wget -q -O ${FILES_LIST} ${PROJECT_REPO}/${option}/.helper.f"
-            wget -q -O "${DIRECTORIES_LIST}" "${PROJECT_REPO}/${option}/.helper.d"
-            wget -q -O "${COMMANDS_LIST}" "${PROJECT_REPO}/${option}/.helper.c"
-            wget -q -O "${FILES_LIST}" "${PROJECT_REPO}/${option}/.helper.f"
-            msg "Downloaded : '$option' template."
+        select option in "${templates[@]}"; do
+            msg "Loading '$option' template."
+            wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/${option}.t"
+            mapfile -t template < "${TEMP}"
+            for line in "${template[@]}"; do
+                if [[ ! -z "$line" ]]; then
+                    if [ '-----' ==  "${line:0:5}" ]; then
+                        target=${line:5}
+                        printf "\nTO  : %b\n" "${target}"
+                    else
+                        echo "${line}" >> "${SCRIPT_DIR}/${target}"
+                        printf "ADD : %s\n" "${line}"
+                    fi
+                fi
+            done
+            # rm "${TEMP}"
             break
         done
     else
