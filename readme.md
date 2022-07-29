@@ -142,6 +142,7 @@ script. You will be prompted to answer "yes" to confirm the command.
 
 History
 -------
+
 Note that when the commands are run they are not registered in the "history". 
 Instead the actual commands are added. For example, running `.d /var/log` will
 show up in "history" as `cd /var/log`.
