@@ -1,5 +1,5 @@
-.helper.sh
-==========
+.helper
+=======
 
 This bash script is designed to be "sourced" into the bash environment, so that it
 streamlines several very repetitive daily tasks.
