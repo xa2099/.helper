@@ -207,8 +207,13 @@ function .f {
             header "Edit:"
             select option in "${list[@]}"; do
                 if [ -f $option ]; then
-                    history -s "${E} $option"
-                    eval "${EDITOR} $option"
+                    if [ -w $option  ]; then
+                        history -s "${EDITOR} $option"
+                        eval "${EDITOR} $option"
+                    else
+                        history -s "sudo ${EDITOR} $option"
+                        eval "sudo ${EDITOR} $option"
+                    fi
                     break
                 else
                     msg "Error : '$option' File does not exist."
