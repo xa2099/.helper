@@ -1,3 +1,0 @@
-empty
-common
-salt
