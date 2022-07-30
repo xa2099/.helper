@@ -3,7 +3,7 @@
 /etc
 
 -----.helper.c
-source.helper
+source .helper
 ls -al /etc
 
 -----.helper.f
