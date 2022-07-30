@@ -319,8 +319,8 @@ function .rem {
     printf "Are you sure you want to remove .helper and all associated files.\n"
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        history -s "rm -f ${SCRIPT_DIR}/.helper.*"
-        eval "rm -f ${SCRIPT_DIR}/.helper.*"
+        history -s "rm -f ${THIS}*"
+        eval "rm -f ${THIS}*"
     fi
 }
 
