@@ -198,7 +198,7 @@ function .dx {
 function .f {
     local list
     history -d $(history 1)
-    header "Edit File"
+    header "File Edit"
     touch "${FILES_LIST}"
     mapfile -t list < "${FILES_LIST}"
     if [ -z $1 ]; then
@@ -237,7 +237,7 @@ function .f {
 function .fx {
     local list
     history -d $(history 1)
-    header "Remove File From List"
+    header "File Remove From List"
     mapfile -t list < "${FILES_LIST}"
     select option in "${list[@]}"; do
         eval "sed -i '${REPLY}d' ${FILES_LIST}"
@@ -247,15 +247,15 @@ function .fx {
 }
 
 function .h {
-    local width height pad long_line
+    local width height pad longest
     history -d $(history 1)
     width=$(tput cols)
     height=$(tput lines)
     pad="$(printf '%0.1s' ' '{1..500})"
-    long_line=0
+    longest=0
     for line in "${help[@]}"; do
-        if [ $long_line -lt ${#line} ]; then
-            long_line=${#line}
+        if [ $longest -lt ${#line} ]; then
+            longest=${#line}
         fi
     done
     for ((i=0; i<$(((height - ${#help[@]} - 5) / 2)); i++)); do
@@ -264,7 +264,7 @@ function .h {
     center "[ Help ]"
     printf "\n"
     for line in "${help[@]}"; do
-        printf '%*.*s%s\n' 0 "$(((width - $long_line) / 2))" "$pad" "$line"
+        printf '%*.*s%s\n' 0 "$(((width - $longest) / 2))" "$pad" "$line"
     done
     printf "\n"
     center "~ * ~"
@@ -274,25 +274,25 @@ function .h {
 }
 
 function .hf {
-    local width long_line pad
+    local width longest pad help
     history -d $(history 1)
     if [ ! -f "${HELP}" ]; then
         history -s "wget -q -O ${HELP} ${PROJECT_REPO}/readme.md"
         wget -q -O "${HELP}" "${PROJECT_REPO}/readme.md"
     fi
     if [ -f "${HELP}" ]; then
-        mapfile -t help_lines < "${HELP}"
-        long_line=0
+        mapfile -t help < "${HELP}"
+        longest=0
         for line in "${help_lines[@]}"; do
-            if [ $long_line -lt ${#line} ]; then
-                long_line=${#line}
+            if [ $longest -lt ${#line} ]; then
+                longest=${#line}
             fi
         done
         pad="$(printf '%0.1s' ' '{1..500})"
         width=$(tput cols)
         printf "\n\n\n\n"
-        for line in "${help_lines[@]}"; do
-            printf '%*.*s%s\n' 0 "$(((width - $long_line) / 2))" "$pad" "$line"
+        for line in "${help[@]}"; do
+            printf '%*.*s%s\n' 0 "$(((width - $longest) / 2))" "$pad" "$line"
         done
         printf "\n\n"
     fi
@@ -341,7 +341,7 @@ function .sr {
 
 function .ss {
     history -d $(history 1)
-    header "Starting $1'."
+    header "Starting $1'"
     history -s "systemctl start $1"
     systemctl start "$1"
     header "Checking $1"
@@ -364,7 +364,7 @@ function .t {
         local templates template target target_lines
         mapfile -t templates < "${TEMP}"
         rm -f "${TEMP}"
-        header "Load Template"
+        header "Template Load "
         select option in "${templates[@]}"; do
             msg "Loading '$option' template."
             wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/${option}.t"
