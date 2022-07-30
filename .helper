@@ -283,7 +283,7 @@ function .hf {
     if [ -f "${HELP}" ]; then
         mapfile -t help < "${HELP}"
         longest=0
-        for line in "${help_lines[@]}"; do
+        for line in "${help[@]}"; do
             if [ $longest -lt ${#line} ]; then
                 longest=${#line}
             fi
@@ -404,9 +404,9 @@ function .u {
 
 function .v {
     if [ -z $1 ]; then
+        history -d $(history 1)
         msg "$NAME | $VERSION"
     else
-        history -d $(history 1)
         splash "$NAME  |  $VERSION"
     fi
 }
