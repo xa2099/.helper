@@ -60,11 +60,6 @@ alias .l="ls -alh --group-directories-first"
 # ======================================================================================================================
 # GUI Elements
 
-B='\033[1m'
-U='\033[4m'
-R='\033[7m'
-X='\033[0m'
-
 function center {
     local width pad char
     [[ -z $2 ]] && char=' ' || char="$2"
@@ -97,7 +92,7 @@ function header {
 }
 
 function msg {
-    printf "\n---[ %b\n\n\n" "$1"
+    printf "\n---[ %b ]---\n\n\n" "$1"
 }
 
 
@@ -203,7 +198,7 @@ function .dx {
 
 function .f {
     history -d $(history 1)
-    header "Edit File:"
+    header "Edit File"
     if [ -z $1 ]; then
         if [ -f "${FILES_LIST}" ]; then
             local list
@@ -337,15 +332,14 @@ function .rem {
     printf "Are you sure you want to remove .helper and all associated files."
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        history -s "rm ${SCRIPT_DIR}/.helper.*"
-        eval "rm ${SCRIPT_DIR}/.helper.*"
+        history -s "rm -f ${SCRIPT_DIR}/.helper.*"
+        eval "rm -f ${SCRIPT_DIR}/.helper.*"
     fi
 }
 
 function .sc {
     history -d $(history 1)
     header "Checking $1"
-    history -s "systemctl status $1"
     systemctl status "$1"
 }
 
@@ -355,7 +349,6 @@ function .sr {
     history -s "systemctl restart $1"
     systemctl restart "$1"
     header "Checking $1"
-    history -s "systemctl status $1"
     systemctl status "$1"
 }
 
@@ -365,7 +358,6 @@ function .ss {
     history -s "systemctl start $1"
     systemctl start "$1"
     header "Checking $1"
-    history -s "systemctl status $1"
     systemctl status "$1"
 }
 
@@ -375,7 +367,6 @@ function .sx {
     history -s "systemctl stop $1"
     systemctl stop "$1"
     header "Checking $1."
-    history -s "systemctl status $1"
     systemctl status "$1"
 }
 
@@ -383,9 +374,9 @@ function .t {
     history -d $(history 1)
     wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/.list"
     if [ -f "${TEMP}" ]; then
-        local templates template target
+        local templates template target target_lines in_array
         mapfile -t templates < "${TEMP}"
-        rm "${TEMP}"
+        rm -f "${TEMP}"
         header "Load Template"
         select option in "${templates[@]}"; do
             msg "Loading '$option' template."
@@ -395,14 +386,19 @@ function .t {
                 if [[ ! -z "$line" ]]; then
                     if [ '-----' ==  "${line:0:5}" ]; then
                         target=${line:5}
-                        printf "\nTO  : %b\n" "${target}"
+                        printf "\nTO   : %b\n" "${target}"
+                        mapfile -t target_lines < "${SCRIPT_DIR}/${target}"
                     else
-                        echo "${line}" >> "${SCRIPT_DIR}/${target}"
-                        printf "ADD : %s\n" "${line}"
+                        if [[ " ${target_lines[*]} " =~ " ${line} " ]]; then
+                            printf "SKIP : %s\n" "${line}"
+                        else
+                            echo "${line}" >> "${SCRIPT_DIR}/${target}"
+                            printf "ADD  : %s\n" "${line}"
+                        fi
                     fi
                 fi
             done
-            # rm "${TEMP}"
+            rm -f "${TEMP}"
             break
         done
     else
