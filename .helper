@@ -14,39 +14,40 @@ EDITOR="nano"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Local list files.
-            THIS="${SCRIPT_DIR}/.helper"
-            TEMP="${SCRIPT_DIR}/.helper.temp"
-   COMMANDS_LIST="${SCRIPT_DIR}/.helper.c"
-DIRECTORIES_LIST="${SCRIPT_DIR}/.helper.d"
-      FILES_LIST="${SCRIPT_DIR}/.helper.f"
-            HELP="${SCRIPT_DIR}/.helper.md"
+THIS_FILE="${SCRIPT_DIR}/.helper"
+COMMANDS_FILE="${SCRIPT_DIR}/.helper.c"
+DIRECTORIES_FILE="${SCRIPT_DIR}/.helper.d"
+EDITOR_FILE="${SCRIPT_DIR}/.helper.e"
+HELP_FILE="${SCRIPT_DIR}/.helper.md"
+TEMP_FILE="${SCRIPT_DIR}/.helper.t"
 
 
 # ======================================================================================================================
 # Help.
 
 help=(
-'.c      Command to run.'
-'.ch     Command to load as last history item.'
-'.cx     Command to remove from the list.'
+'        .helper'
+'        -------'
 ''
 '.d      Directory to change to.'
-'.dx     Directory to delete from the list.'
+'.dx     Remove directory from the list.'
 ''
-'.f      File to edit.'
-'.fx     File to remove from the list.'
+'.c      Command to execute.'
+'.ch     Command to load as last history item.'
+'.cx     Remove command from the list.'
 ''
-'.sc     Service Check status.'
-'.ss     Service Start.'
-'.sx     Service Stop.'
-'.sr     Service Restart.'
+'.e      Edit file.'
+'.ex     Remove file from edit list.'
 ''
-'.h      Help.'
-'.hf     Help Full.'
-'.t      Templates.'
+'.t      Template Load.'
+'.p      Print template.'
+''
+'.r      Remove .helper and associated files.'
+'.u      Update to the latest version.'
 '.v      Script version.'
-'.o      Output all lists.'
-'.rem    Remove ".helper" and associated files. Remove ".helper" and associated files.'
+''
+'.h      Help. (This)'
+'.hf     Help Full.'
 )
 
 
@@ -99,19 +100,14 @@ function msg {
 # ======================================================================================================================
 # Helper functions.
 
-function .b {
-    history -d $(history 1)
-    printf "\n\n\n\n\n\n\n\n\n\n"
-}
-
 function .c {
     local list
     history -d $(history 1)
-    touch "${COMMANDS_LIST}"
-    mapfile -t list < "${COMMANDS_LIST}"
+    touch "${COMMANDS_FILE}"
+    mapfile -t list < "${COMMANDS_FILE}"
     if [ -z $1 ]; then
         header "Command Execute"
-        if [ -f "${COMMANDS_LIST}" ]; then
+        if [ -f "${COMMANDS_FILE}" ]; then
             select option in "${list[@]}"; do
                 msg "Executed : $option"
                 history -s "$option"
@@ -121,7 +117,7 @@ function .c {
         fi
     else
         if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-            echo "$@" >> "${COMMANDS_LIST}"
+            echo "$@" >> "${COMMANDS_FILE}"
         fi
         history -s "$@"
         eval "$@"
@@ -132,8 +128,8 @@ function .ch {
     local list
     history -d $(history 1)
     header "Command Load to History"
-    touch "${COMMANDS_LIST}"
-    mapfile -t list < "${COMMANDS_LIST}"
+    touch "${COMMANDS_FILE}"
+    mapfile -t list < "${COMMANDS_FILE}"
     select option in "${list[@]}"; do
         history -s "${option}"
         msg "Loaded : '$option'"
@@ -145,10 +141,10 @@ function .cx {
     local list
     history -d $(history 1)
     header "Command Remove"
-    touch "${COMMANDS_LIST}"
-    mapfile -t list < "${COMMANDS_LIST}"
+    touch "${COMMANDS_FILE}"
+    mapfile -t list < "${COMMANDS_FILE}"
     select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${COMMANDS_LIST}"
+        eval "sed -i '${REPLY}d' ${COMMANDS_FILE}"
         msg "Removed : $REPLY) $option"
         break
     done
@@ -157,8 +153,8 @@ function .cx {
 function .d {
     local list
     history -d $(history 1)
-    touch "${DIRECTORIES_LIST}"
-    mapfile -t list < "${DIRECTORIES_LIST}"
+    touch "${DIRECTORIES_FILE}"
+    mapfile -t list < "${DIRECTORIES_FILE}"
     if [ -z $1 ]; then
         header "Directory Change"
         select option in "${list[@]}"; do
@@ -173,7 +169,7 @@ function .d {
     else
         if [ -d $@ ]; then
             if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-                echo "$@" >> "${DIRECTORIES_LIST}"
+                echo "$@" >> "${DIRECTORIES_FILE}"
             fi
             eval "cd $@"
         else
@@ -186,22 +182,22 @@ function .dx {
     local list
     history -d $(history 1)
     header "Remove Directory"
-    touch "${DIRECTORIES_LIST}"
-    mapfile -t list < "${DIRECTORIES_LIST}"
+    touch "${DIRECTORIES_FILE}"
+    mapfile -t list < "${DIRECTORIES_FILE}"
     select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${DIRECTORIES_LIST}"
+        eval "sed -i '${REPLY}d' ${DIRECTORIES_FILE}"
         msg "Removed : $REPLY) $option"
         break
     done
 }
 
-function .f {
+function .e {
     local list
     history -d $(history 1)
-    touch "${FILES_LIST}"
-    mapfile -t list < "${FILES_LIST}"
+    touch "${EDITOR_FILE}"
+    mapfile -t list < "${EDITOR_FILE}"
     if [ -z $1 ]; then
-        header "File Edit"
+        header "Edit File"
         select option in "${list[@]}"; do
             if [ -f $option ]; then
                 if [ -w $option  ]; then
@@ -219,7 +215,7 @@ function .f {
     else
         if [ -f $@ ]; then
             if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-                echo "$@" >> "${FILES_LIST}"
+                echo "$@" >> "${EDITOR_FILE}"
             fi
             if [ -w $@ ]; then
                 history -s "${EDITOR} $@"
@@ -234,13 +230,13 @@ function .f {
     fi
 }
 
-function .fx {
+function .ex {
     local list
     history -d $(history 1)
-    header "File Remove From List"
-    mapfile -t list < "${FILES_LIST}"
+    header "Remove File From List"
+    mapfile -t list < "${EDITOR_FILE}"
     select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${FILES_LIST}"
+        eval "sed -i '${REPLY}d' ${EDITOR_FILE}"
         msg "Removed : $REPLY) $option"
         break
     done
@@ -258,17 +254,13 @@ function .h {
             longest=${#line}
         fi
     done
-    for ((i=0; i<$(((height - ${#help[@]} - 5) / 2)); i++)); do
+    for ((i=0; i<$(((height - ${#help[@]}) / 2)); i++)); do
         printf "\n"
     done
-    center "[ Help ]"
-    printf "\n"
     for line in "${help[@]}"; do
         printf '%*.*s%s\n' 0 "$(((width - $longest) / 2))" "$pad" "$line"
     done
-    printf "\n"
-    center "~ * ~"
-    for ((i=0; i<$(((height -  ${#help[@]} - 5) / 2)); i++)); do
+    for ((i=0; i<$(((height -  ${#help[@]}) / 2)); i++)); do
         printf "\n"
     done
 }
@@ -276,12 +268,12 @@ function .h {
 function .hf {
     local width longest pad help
     history -d $(history 1)
-    if [ ! -f "${HELP}" ]; then
-        history -s "wget -q -O ${HELP} ${PROJECT_REPO}/readme.md"
-        wget -q -O "${HELP}" "${PROJECT_REPO}/readme.md"
+    if [ ! -f "${HELP_FILE}" ]; then
+        history -s "wget -q -O ${HELP_FILE} ${PROJECT_REPO}/readme.md"
+        wget -q -O "${HELP_FILE}" "${PROJECT_REPO}/readme.md"
     fi
-    if [ -f "${HELP}" ]; then
-        mapfile -t help < "${HELP}"
+    if [ -f "${HELP_FILE}" ]; then
+        mapfile -t help < "${HELP_FILE}"
         longest=0
         for line in "${help[@]}"; do
             if [ $longest -lt ${#line} ]; then
@@ -298,29 +290,29 @@ function .hf {
     fi
 }
 
-function .o {
+function .p {
     history -d $(history 1)
     printf "\n%b" "-----.helper.d\n"
-    touch "${DIRECTORIES_LIST}"
-    cat "${DIRECTORIES_LIST}"
+    touch "${DIRECTORIES_FILE}"
+    cat "${DIRECTORIES_FILE}"
     printf "\n%b" "-----.helper.c\n"
-    touch "${COMMANDS_LIST}"
-    cat "${COMMANDS_LIST}"
+    touch "${COMMANDS_FILE}"
+    cat "${COMMANDS_FILE}"
     printf "\n%b" "-----.helper.f\n"
-    touch "${FILES_LIST}"
-    cat "${FILES_LIST}"
+    touch "${EDITOR_FILE}"
+    cat "${EDITOR_FILE}"
     printf "\n\n"
 }
 
-function .rem {
+function .r {
     local agree
     history -d $(history 1)
     header "Remove .helper"
     printf "Are you sure you want to remove .helper and all associated files.\n"
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        history -s "rm -f ${THIS}*"
-        eval "rm -f ${THIS}*"
+        history -s "rm -f ${THIS_FILE}*"
+        eval "rm -f ${THIS_FILE}*"
     fi
 }
 
@@ -358,17 +350,17 @@ function .sx {
 }
 
 function .t {
+    local templates template target target_lines
     history -d $(history 1)
-    wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/.list"
-    if [ -f "${TEMP}" ]; then
-        local templates template target target_lines
-        mapfile -t templates < "${TEMP}"
-        rm -f "${TEMP}"
+    wget -q -O "${TEMP_FILE}" "${PROJECT_REPO}/templates/.list"
+    if [ -f "${TEMP_FILE}" ]; then
+        mapfile -t templates < "${TEMP_FILE}"
+        rm -f "${TEMP_FILE}"
         header "Template Load "
         select option in "${templates[@]}"; do
             msg "Loading '$option' template."
-            wget -q -O "${TEMP}" "${PROJECT_REPO}/templates/${option}.t"
-            mapfile -t template < "${TEMP}"
+            wget -q -O "${TEMP_FILE}" "${PROJECT_REPO}/templates/${option}.t"
+            mapfile -t template < "${TEMP_FILE}"
             for line in "${template[@]}"; do
                 if [[ ! -z "$line" ]]; then
                     if [ '-----' ==  "${line:0:5}" ]; then
@@ -386,7 +378,7 @@ function .t {
                     fi
                 fi
             done
-            rm -f "${TEMP}"
+            rm -f "${TEMP_FILE}"
             break
         done
     else
@@ -396,10 +388,10 @@ function .t {
 
 function .u {
     history -d $(history 1)
-    history -s "wget -q -O ${THIS} ${PROJECT_REPO}/.helper"
-    wget -q -O "${THIS}" "${PROJECT_REPO}/.helper"
-    history -s source "source ${THIS}"
-    source "${THIS}"
+    history -s "wget -q -O ${THIS_FILE} ${PROJECT_REPO}/.helper"
+    wget -q -O "${THIS_FILE}" "${PROJECT_REPO}/.helper"
+    history -s source "source ${THIS_FILE}"
+    source "${THIS_FILE}"
 }
 
 function .v {
