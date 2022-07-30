@@ -329,7 +329,7 @@ function .rem {
     history -d $(history 1)
     local agree
     header "Remove .helper"
-    printf "Are you sure you want to remove .helper and all associated files."
+    printf "Are you sure you want to remove .helper and all associated files.\n"
     read -e -p " Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
         history -s "rm -f ${SCRIPT_DIR}/.helper.*"
