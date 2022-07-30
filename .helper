@@ -107,10 +107,10 @@ function .b {
 function .c {
     local list
     history -d $(history 1)
-    header "Command Execute"
     touch "${COMMANDS_LIST}"
     mapfile -t list < "${COMMANDS_LIST}"
     if [ -z $1 ]; then
+        header "Command Execute"
         if [ -f "${COMMANDS_LIST}" ]; then
             select option in "${list[@]}"; do
                 msg "Executed : $option"
@@ -157,10 +157,10 @@ function .cx {
 function .d {
     local list
     history -d $(history 1)
-    header "Directory Change"
     touch "${DIRECTORIES_LIST}"
     mapfile -t list < "${DIRECTORIES_LIST}"
     if [ -z $1 ]; then
+        header "Directory Change"
         select option in "${list[@]}"; do
             if [ -d $1 ]; then
                 msg "Changed to : $option"
@@ -198,10 +198,10 @@ function .dx {
 function .f {
     local list
     history -d $(history 1)
-    header "File Edit"
     touch "${FILES_LIST}"
     mapfile -t list < "${FILES_LIST}"
     if [ -z $1 ]; then
+        header "File Edit"
         select option in "${list[@]}"; do
             if [ -f $option ]; then
                 if [ -w $option  ]; then
