@@ -5,13 +5,12 @@ _VERSION="22.07.31"
 _REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
 _DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 _THIS="${_DIR}/.helper"
-_DIRECTORIES="${_DIR}/.helper.d"
-_COMMANDS="${_DIR}/.helper.c"
-_FILES="${_DIR}/.helper.f"
-_SERVICES="${_DIR}/.helper.s"
+_LIST="${_DIR}/.helper.lst"
 _HELP="${_DIR}/.helper.md"
-_TEMP="${_DIR}/.helper.t"
 _EDITOR="nano"
+_DIRECTORIES=()
+_COMMANDS=()
+_FILES=()
 
 # ---[ Help ]-------------------------------------------------------------------
 
@@ -32,9 +31,12 @@ help=(
     '.f   File edit.'
     '.fr  File Remove from the list.'
     ''
+    '.s   Service.'
+    '.sr  Service Remove from the list.'
+    ''
     '.lg  Lists Get.'
     '.lp  Lists Print.'
-    '.tr  Lists Remove.'
+    '.lr  Lists Remove.'
     ''
     '.r   Remove .helper and associated files.'
     '.u   Update to the latest version.'
@@ -44,12 +46,12 @@ help=(
     "                              v. $_VERSION"
 )
 
-# ---[ UI Functions ]-----------------------------------------------------------
+# ---[ Internal Functions ]-----------------------------------------------------
 
 function .header
 {
     local pad="$(printf '%0.1s' '-'{1..500})"
-    printf '\n\n\n%*.*s%b%*.*s\n\n' 0 3 "$pad" "[ $@ ]" 0 "$(($(tput cols)-10-${#1}))" "$pad"
+    printf '\n\n\n---%b%*.*s\n\n' "[ $@ ]" 0 "$(($(tput cols)-10-${#1}))" "$pad"
 }
 function .msg
 {
@@ -79,6 +81,68 @@ function .remember
     history -s "$@"
 }
 
+function .load
+{
+    local list file target
+    if [ -z $1 ]; then
+        file="$_LIST"
+    else
+        file="$1"
+    fi
+    if [ -f "$file" ]; then
+        mapfile -t list < "$file"
+        for line in "${list[@]}"; do
+            if [[ ! -z "$line" ]]; then
+                if [ '###' == "${line:0:3}" ]; then
+                    target=${line:4}
+                    printf "\nTarget : %b\n" "${target/_}"
+                else
+                    if [ $target == "_DIRECTORIES" ]; then
+                        if [[ " ${_DIRECTORIES[*]} " =~ " ${line} " ]]; then
+                            printf "  Skip : %s\n" "${line}"
+                        else
+                            _DIRECTORIES[${#_DIRECTORIES[@]}]="$line"
+                            printf "   Add : %s\n" "${line}"
+                        fi
+                    elif [ $target == "_FILES" ]; then
+                        if [[ " ${_FILES[*]} " =~ " ${line} " ]]; then
+                            printf "  Skip : %s\n" "${line}"
+                        else
+                            _FILES[${#_FILES[@]}]="$line"
+                            printf "   Add : %s\n" "${line}"
+                        fi
+                    elif [ $target == "_COMMANDS" ]; then
+                        if [[ " ${_COMMANDS[*]} " =~ " ${line} " ]]; then
+                            printf "  Skip : %s\n" "${line}"
+                        else
+                            _COMMANDS[${#_COMMANDS[@]}]="$line"
+                            printf "   Add : %s\n" "${line}"
+                        fi
+                    fi
+                fi
+            fi
+        done
+    fi
+}
+
+function .save
+{
+    echo "### _DIRECTORIES" > "$_LIST"
+    for item in "${_DIRECTORIES[@]}"; do
+        echo "$item" >> "$_LIST"
+    done
+    echo "" >> "$_LIST"
+    echo "### _FILES" >> "$_LIST"
+    for item in "${_FILES[@]}"; do
+        echo "$item" >> "$_LIST"
+    done
+    echo "" >> "$_LIST"
+    echo "### _COMMANDS" >> "$_LIST"
+    for item in "${_COMMANDS[@]}"; do
+        echo "$item" >> "$_LIST"
+    done
+}
+
 # ---[ Helper Function ]--------------------------------------------------------
 
 function .b
@@ -89,27 +153,22 @@ function .b
 
 function .c
 {
-    local list
     .forget
-    touch "${_COMMANDS}"
-    mapfile -t list < "${_COMMANDS}"
     if [ -z $1 ]; then
         .header "Execute"
-        if [ -f "${_COMMANDS}" ]; then
-            COLUMNS=0
-            select option in "${list[@]}"; do
-                .msg "Executed : $option"
-                .remember "$option"
-                eval "$option"
-                break
-            done
-        fi
+        COLUMNS=0
+        select option in "${_COMMANDS[@]}"; do
+            .msg "Executed : $option"
+            .remember "$option"
+            eval "$option"
+            break
+        done
     else
-        if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-            echo "$@" >> "${_COMMANDS}"
-        fi
         .remember "$@"
         eval "$@"
+        if [[ ! " ${_COMMANDS[*]} " =~ " $@ " ]]; then
+            _COMMANDS[${#_COMMANDS[@]}]="$@"
+        fi
     fi
 }
 
@@ -130,15 +189,12 @@ function .cl
 
 function .cr
 {
-    local list
     .forget
     .header "Remove"
-    touch "${_COMMANDS}"
-    mapfile -t list < "${_COMMANDS}"
     COLUMNS=0
-    select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${_COMMANDS}"
-        .msg "Removed : $REPLY) $option"
+    select option in "${_COMMANDS[@]}"; do
+        unset "_COMMANDS[($REPLY - 1)]"
+        .msg "Removed : $option"
         break
     done
 }
@@ -147,12 +203,10 @@ function .d
 {
     local list
     .forget
-    touch "${_DIRECTORIES}"
-    mapfile -t list < "${_DIRECTORIES}"
     if [ -z $1 ]; then
         .header "Change To"
         COLUMNS=0
-        select option in "${list[@]}"; do
+        select option in "${_DIRECTORIES[@]}"; do
             if [ -d $1 ]; then
                 .msg "Changed to : $option"
                 eval "cd $option"
@@ -163,8 +217,8 @@ function .d
         done
     else
         if [ -d $@ ]; then
-            if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-                echo "$@" >> "${_DIRECTORIES}"
+            if [[ ! " ${_DIRECTORIES[*]} " =~ " ${@} " ]]; then
+                _DIRECTORIES[${#_DIRECTORIES[@]}]="$@"
             fi
             eval "cd $@"
         else
@@ -178,12 +232,10 @@ function .dr
     local list
     .forget
     .header "Remove"
-    touch "${_DIRECTORIES}"
-    mapfile -t list < "${_DIRECTORIES}"
     COLUMNS=0
-    select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${_DIRECTORIES}"
-        .msg "Removed : $REPLY) $option"
+    select option in "${_DIRECTORIES[@]}"; do
+        unset "_DIRECTORIES[($REPLY - 1)]"
+        .msg "Removed : $option"
         break
     done
 }
@@ -192,12 +244,10 @@ function .f
 {
     local list
     .forget
-    touch "${_FILES}"
-    mapfile -t list < "${_FILES}"
     if [ -z $1 ]; then
         .header "Edit"
         COLUMNS=0
-        select option in "${list[@]}"; do
+        select option in "${_FILES[@]}"; do
             if [ -f $option ]; then
                 if [ -w $option  ]; then
                     .remember "${_EDITOR} $option"
@@ -212,19 +262,15 @@ function .f
             fi
         done
     else
-        if [ -f $@ ]; then
-            if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
-                echo "$@" >> "${_FILES}"
-            fi
-            if [ -w $@ ]; then
-                .remember "${_EDITOR} $@"
-                eval "${_EDITOR} $@"
-            else
-                .remember "sudo ${_EDITOR} $@"
-                eval "sudo ${_EDITOR} $@"
-            fi
+        if [[ ! " ${_FILES[*]} " =~ " ${@} " ]]; then
+            _FILES[${#_FILES[@]}]="$@"
+        fi
+        if [ -f $@ && ! -w $@ ]; then
+            .remember "sudo ${_EDITOR} $@"
+            eval "sudo ${_EDITOR} $@"
         else
-            .msg "Error : '$@' File does not exist."
+            .remember "${_EDITOR} $@"
+            eval "${_EDITOR} $@"
         fi
     fi
 }
@@ -234,12 +280,10 @@ function .fr
     local list
     .forget
     .header "Remove"
-    touch "${_FILES}"
-    mapfile -t list < "${_FILES}"
     COLUMNS=0
-    select option in "${list[@]}"; do
-        eval "sed -i '${REPLY}d' ${_FILES}"
-        .msg "Removed : $REPLY) $option"
+    select option in "${_FILES[@]}"; do
+        unset "_DIRECTORIES[($REPLY - 1)]"
+        .msg "Removed : $option"
         break
     done
 }
@@ -276,38 +320,18 @@ function .lg
     local menu list target target_list
     .forget
     wget -q -O "${_TEMP}" "${_REPO}/lists/.menu"
-    if [ -f "${_TEMP}" ]; then
-        mapfile -t menu < "${_TEMP}"
+    mapfile -t menu < "${_TEMP}"
+    rm -f "${_TEMP}"
+    .header " Load List"
+    COLUMNS=0
+    select option in "${menu[@]}"; do
+        .msg "Loading '$option' lists."
+        wget -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
+        mapfile -t list < "${_TEMP}"
+        .load "${_TEMP}"
         rm -f "${_TEMP}"
-        .header " Load Lists"
-        COLUMNS=0
-        select option in "${menu[@]}"; do
-            .msg "Loading '$option' lists."
-            wget -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
-            mapfile -t list < "${_TEMP}"
-            for line in "${list[@]}"; do
-                if [[ ! -z "$line" ]]; then
-                    if [ '-----' ==  "${line:0:5}" ]; then
-                        target=${line:5}
-                        printf "\nTarget : %b\n" "${target}"
-                        touch "${_DIR}/${target}"
-                        mapfile -t target_list < "${_DIR}/${target}"
-                    else
-                        if [[ " ${target_list[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
-                        else
-                            echo "${line}" >> "${_DIR}/${target}"
-                            printf "   Add : %s\n" "${line}"
-                        fi
-                    fi
-                fi
-            done
-            rm -f "${_TEMP}"
-            break
-        done
-    else
-        .msg "Error : Missing local list file."
-    fi
+        break
+    done
 }
 
 function .lp
@@ -316,12 +340,12 @@ function .lp
     printf "\n%b" "-----.helper.d\n"
     touch "${_DIRECTORIES}"
     cat "${_DIRECTORIES}"
-    printf "\n%b" "-----.helper.c\n"
-    touch "${_COMMANDS}"
-    cat "${_COMMANDS}"
     printf "\n%b" "-----.helper.f\n"
     touch "${_FILES}"
     cat "${_FILES}"
+    printf "\n%b" "-----.helper.c\n"
+    touch "${_COMMANDS}"
+    cat "${_COMMANDS}"
     printf "\n\n"
 }
 
