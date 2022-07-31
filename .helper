@@ -170,10 +170,8 @@ function .cl
     local list
     .forget
     .header "Load to History"
-    touch "${_COMMANDS}"
-    mapfile -t list < "${_COMMANDS}"
     COLUMNS=0
-    select option in "${list[@]}"; do
+    select option in "${_COMMANDS[@]}"; do
         .remember "${option}"
         .msg "Loaded : '$option'"
         break
