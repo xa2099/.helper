@@ -31,12 +31,9 @@ help=(
     '.f   File edit.'
     '.fr  File Remove from the list.'
     ''
-    '.s   Service.'
-    '.sr  Service Remove from the list.'
-    ''
-    '.lg  Lists Get.'
-    '.lp  Lists Print.'
-    '.lr  Lists Remove.'
+    '.lg  List Get.'
+    '.lp  List Print.'
+    '.lr  List Remove.'
     ''
     '.r   Remove .helper and associated files.'
     '.u   Update to the latest version.'
@@ -83,14 +80,9 @@ function .remember
 
 function .load
 {
-    local list file target
-    if [ -z $1 ]; then
-        file="$_LIST"
-    else
-        file="$1"
-    fi
-    if [ -f "$file" ]; then
-        mapfile -t list < "$file"
+    local list target
+    if [ -f "$@" ]; then
+        mapfile -t list < "$@"
         for line in "${list[@]}"; do
             if [[ ! -z "$line" ]]; then
                 if [ '###' == "${line:0:3}" ]; then
@@ -168,6 +160,7 @@ function .c
         eval "$@"
         if [[ ! " ${_COMMANDS[*]} " =~ " $@ " ]]; then
             _COMMANDS[${#_COMMANDS[@]}]="$@"
+            .save
         fi
     fi
 }
@@ -194,6 +187,7 @@ function .cr
     COLUMNS=0
     select option in "${_COMMANDS[@]}"; do
         unset "_COMMANDS[($REPLY - 1)]"
+        .save
         .msg "Removed : $option"
         break
     done
@@ -219,6 +213,7 @@ function .d
         if [ -d $@ ]; then
             if [[ ! " ${_DIRECTORIES[*]} " =~ " ${@} " ]]; then
                 _DIRECTORIES[${#_DIRECTORIES[@]}]="$@"
+                .save
             fi
             eval "cd $@"
         else
@@ -235,6 +230,7 @@ function .dr
     COLUMNS=0
     select option in "${_DIRECTORIES[@]}"; do
         unset "_DIRECTORIES[($REPLY - 1)]"
+        .save
         .msg "Removed : $option"
         break
     done
@@ -264,6 +260,7 @@ function .f
     else
         if [[ ! " ${_FILES[*]} " =~ " ${@} " ]]; then
             _FILES[${#_FILES[@]}]="$@"
+            .save
         fi
         if [ -f $@ && ! -w $@ ]; then
             .remember "sudo ${_EDITOR} $@"
@@ -283,6 +280,7 @@ function .fr
     COLUMNS=0
     select option in "${_FILES[@]}"; do
         unset "_DIRECTORIES[($REPLY - 1)]"
+        .save
         .msg "Removed : $option"
         break
     done
@@ -337,15 +335,8 @@ function .lg
 function .lp
 {
     .forget
-    printf "\n%b" "-----.helper.d\n"
-    touch "${_DIRECTORIES}"
-    cat "${_DIRECTORIES}"
-    printf "\n%b" "-----.helper.f\n"
-    touch "${_FILES}"
-    cat "${_FILES}"
-    printf "\n%b" "-----.helper.c\n"
-    touch "${_COMMANDS}"
-    cat "${_COMMANDS}"
+    .header "List"
+    cat "${_LIST}"
     printf "\n\n"
 }
 
@@ -353,13 +344,12 @@ function .lr
 {
     local agree
     .forget
-    .header "Empty all the lists."
+    .header "Empty the list."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        eval "rm -f ${_DIRECTORIES}"
-        eval "rm -f ${_COMMANDS}"
-        eval "rm -f ${_FILES}"
+        echo "" > "${_LIST}"
     fi
+    .load "${_LIST}"
 }
 
 function .m
@@ -404,5 +394,5 @@ function .v
 
 # ---[ Autorun ]----------------------------------------------------------------
 
+.load "$_LIST"
 .splash "$_NAME  |  run .h"
-
