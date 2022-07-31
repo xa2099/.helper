@@ -315,14 +315,14 @@ function .lg
 {
     local menu list target target_list
     .forget
-    wget -q -O "${_TEMP}" "${_REPO}/lists/.menu"
+    wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/.menu"
     mapfile -t menu < "${_TEMP}"
     rm -f "${_TEMP}"
     .header " Load List"
     COLUMNS=0
     select option in "${menu[@]}"; do
         .msg "Loading '$option' lists."
-        wget -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
+        wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
         mapfile -t list < "${_TEMP}"
         .load "${_TEMP}"
         rm -f "${_TEMP}"
@@ -355,7 +355,7 @@ function .m
 {
     .forget
     if [ ! -f "${_HELP}" ]; then
-        wget -q -O "${_HELP}" "${_REPO}/readme.md"
+        wget --no-cache -q -O "${_HELP}" "${_REPO}/readme.md"
     fi
     if [ -f "${_HELP}" ]; then
         cat "${_HELP}" | more
@@ -379,8 +379,8 @@ function .r
 function .u
 {
     .forget
-    .remember "wget -q -O ${_THIS} ${_REPO}/.helper"
-    eval "wget -q -O ${_THIS} ${_REPO}/.helper"
+    .remember "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
+    eval "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
     .remember "source ${_THIS}"
     eval "source ${_THIS}"
 }
