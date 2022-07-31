@@ -98,6 +98,7 @@ function .c
     if [ -z $1 ]; then
         .header "Execute"
         if [ -f "${_COMMANDS}" ]; then
+            COLUMNS=0
             select option in "${list[@]}"; do
                 .msg "Executed : $option"
                 .remember "$option"
@@ -121,6 +122,7 @@ function .cl
     .header "Load to History"
     touch "${_COMMANDS}"
     mapfile -t list < "${_COMMANDS}"
+    COLUMNS=0
     select option in "${list[@]}"; do
         .remember "${option}"
         .msg "Loaded : '$option'"
@@ -135,6 +137,7 @@ function .cr
     .header "Remove"
     touch "${_COMMANDS}"
     mapfile -t list < "${_COMMANDS}"
+    COLUMNS=0
     select option in "${list[@]}"; do
         eval "sed -i '${REPLY}d' ${_COMMANDS}"
         .msg "Removed : $REPLY) $option"
@@ -150,6 +153,7 @@ function .d
     mapfile -t list < "${_DIRECTORIES}"
     if [ -z $1 ]; then
         .header "Change To"
+        COLUMNS=0
         select option in "${list[@]}"; do
             if [ -d $1 ]; then
                 .msg "Changed to : $option"
@@ -178,6 +182,7 @@ function .dr
     .header "Remove"
     touch "${_DIRECTORIES}"
     mapfile -t list < "${_DIRECTORIES}"
+    COLUMNS=0
     select option in "${list[@]}"; do
         eval "sed -i '${REPLY}d' ${_DIRECTORIES}"
         .msg "Removed : $REPLY) $option"
@@ -193,6 +198,7 @@ function .f
     mapfile -t list < "${_FILES}"
     if [ -z $1 ]; then
         .header "Edit"
+        COLUMNS=0
         select option in "${list[@]}"; do
             if [ -f $option ]; then
                 if [ -w $option  ]; then
@@ -232,6 +238,7 @@ function .fr
     .header "Remove"
     touch "${_FILES}"
     mapfile -t list < "${_FILES}"
+    COLUMNS=0
     select option in "${list[@]}"; do
         eval "sed -i '${REPLY}d' ${_FILES}"
         .msg "Removed : $REPLY) $option"
@@ -262,32 +269,33 @@ function .h
     printf "$vpad"
 }
 
-function .l
+function .lg
 {
-    local templates template target target_lines
+    local menu list target target_list
     .forget
-    wget -q -O "${_TEMP}" "${_REPO}/templates/.list"
+    wget -q -O "${_TEMP}" "${_REPO}/lists/.menu"
     if [ -f "${_TEMP}" ]; then
-        mapfile -t templates < "${_TEMP}"
+        mapfile -t menu < "${_TEMP}"
         rm -f "${_TEMP}"
-        .header "Template Load "
-        select option in "${templates[@]}"; do
-            .msg "Loading '$option' template."
-            wget -q -O "${_TEMP}" "${_REPO}/templates/${option}.t"
-            mapfile -t template < "${_TEMP}"
-            for line in "${template[@]}"; do
+        .header " Load Lists"
+        COLUMNS=0
+        select option in "${menu[@]}"; do
+            .msg "Loading '$option' lists."
+            wget -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
+            mapfile -t list < "${_TEMP}"
+            for line in "${list[@]}"; do
                 if [[ ! -z "$line" ]]; then
                     if [ '-----' ==  "${line:0:5}" ]; then
                         target=${line:5}
-                        printf "\nTager : %b\n" "${target}"
+                        printf "\nTarget : %b\n" "${target}"
                         touch "${_DIR}/${target}"
-                        mapfile -t target_lines < "${_DIR}/${target}"
+                        mapfile -t target_list < "${_DIR}/${target}"
                     else
-                        if [[ " ${target_lines[*]} " =~ " ${line} " ]]; then
-                            printf "Skip  : %s\n" "${line}"
+                        if [[ " ${target_list[*]} " =~ " ${line} " ]]; then
+                            printf "  Skip : %s\n" "${line}"
                         else
                             echo "${line}" >> "${_DIR}/${target}"
-                            printf "Add   : %s\n" "${line}"
+                            printf "   Add : %s\n" "${line}"
                         fi
                     fi
                 fi
@@ -315,7 +323,7 @@ function .lp
     printf "\n\n"
 }
 
-function .lx
+function .lr
 {
     local agree
     .forget
@@ -330,27 +338,14 @@ function .lx
 
 function .m
 {
-    local width longest pad help
     .forget
     if [ ! -f "${_HELP}" ]; then
-        .remember "wget -q -O ${_HELP} ${_REPO}/readme.md"
         wget -q -O "${_HELP}" "${_REPO}/readme.md"
     fi
     if [ -f "${_HELP}" ]; then
-        mapfile -t help < "${_HELP}"
-        longest=0
-        for line in "${help[@]}"; do
-            if [ $longest -lt ${#line} ]; then
-                longest=${#line}
-            fi
-        done
-        pad="$(printf '%0.1s' ' '{1..500})"
-        width=$(tput cols)
-        printf "\n\n\n\n"
-        for line in "${help[@]}"; do
-            printf '%*.*s%s\n' 0 "$(((width - $longest) / 2))" "$pad" "$line"
-        done
-        printf "\n\n"
+        cat "${_HELP}" | more
+    else
+        .msg "Error : Could not download."
     fi
 }
 
@@ -370,9 +365,9 @@ function .u
 {
     .forget
     .remember "wget -q -O ${_THIS} ${_REPO}/.helper"
-    eval      "wget -q -O ${_THIS} ${_REPO}/.helper"
+    eval "wget -q -O ${_THIS} ${_REPO}/.helper"
     .remember "source ${_THIS}"
-    eval      "source ${_THIS}"
+    eval "source ${_THIS}"
 }
 
 function .v
@@ -383,4 +378,4 @@ function .v
 
 # ---[ Autorun ]----------------------------------------------------------------
 
-.h -
+.splash "$_NAME  |  run .h"
