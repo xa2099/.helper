@@ -18,7 +18,392 @@ alias .l="ls -alh --group-directories-first"
 # ---[ Help ]-------------------------------------------------------------------
 
 help=(
+    "$_NAME"# ---[ Configuration ]----------------------------------------------------------
+
+_NAME=".helper"
+_VERSION="22.07.30"
+_REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
+_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+_THIS="${_DIR}/.helper"
+_COMMANDS="${_DIR}/.helper.c"
+_DIRECTORIES="${_DIR}/.helper.d"
+_FILES="${_DIR}/.helper.e"
+_HELP="${_DIR}/.helper.md"
+_TEMP="${_DIR}/.helper.t"
+_EDITOR="nano"
+
+# ---[ Aliases ]----------------------------------------------------------------
+
+alias .b="cd -"
+alias .l="ls -alh --group-directories-first"
+
+# ---[ Help ]-------------------------------------------------------------------
+
+help=(
     "$_NAME"
+    '-----------------------------------------'
+    ''
+    '.h   Help (this menu).'
+    '.m   Manual.'
+    ''
+    '.d   Directory to change to.'
+    '.dr  Directory Remove from the list.'
+    ''
+    '.c   Command to execute.'
+    '.cl  Command Load as last history item.'
+    '.cr  Command Remove from the list.'
+    ''
+    '.f   File edit.'
+    '.fr  File Remove from the list.'
+    ''
+    '.s   Service.'
+    '.sr  Service Remove from the list.'
+    ''
+    '.lg  Lists Get.'
+    '.lp  Lists Print.'
+    '.tr  Lists Remove.'
+    ''
+    '.r   Remove .helper and associated files.'
+    '.u   Update to the latest version.'
+    '.v   Script version.'
+    ''
+    '-----------------------------------------'
+    "                              v. $_VERSION"
+)
+
+# ---[ UI Functions ]-----------------------------------------------------------
+
+function .header
+{
+    local pad="$(printf '%0.1s' '-'{1..500})"
+    printf '\n\n\n%*.*s%b%*.*s\n\n' 0 3 "$pad" "[ $@ ]" 0 "$(($(tput cols)-10-${#1}))" "$pad"
+}
+function .msg
+{
+    printf "\n---[ %b\n\n\n" "$1"
+}
+
+function .splash
+{
+    local pad
+    pad="$(printf '%0.1s' ' '{1..500})"
+    for (( i=0; i<$(($(tput lines) / 2)); i++)); do
+        printf "\n"
+    done
+    printf '%*.*s%b\n ' 0 "$((($(tput cols)-2-${#1})/2))" "$pad" "$1"
+    for (( i=0; i<$(($(tput lines) / 2)); i++)); do
+        printf "\n"
+    done
+}
+
+function .forget
+{
+    history -d $(history 1)
+}
+
+function .remember
+{
+    history -s "$@"
+}
+
+# ---[ Helper Function ]--------------------------------------------------------
+
+function .c
+{
+    local list
+    .forget
+    touch "${_COMMANDS}"
+    mapfile -t list < "${_COMMANDS}"
+    if [ -z $1 ]; then
+        .header "Execute"
+        if [ -f "${_COMMANDS}" ]; then
+            select option in "${list[@]}"; do
+                .msg "Executed : $option"
+                .remember "$option"
+                eval "$option"
+                break
+            done
+        fi
+    else
+        if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
+            echo "$@" >> "${_COMMANDS}"
+        fi
+        .remember "$@"
+        eval "$@"
+    fi
+}
+
+function .cl
+{
+    local list
+    .forget
+    .header "Load to History"
+    touch "${_COMMANDS}"
+    mapfile -t list < "${_COMMANDS}"
+    select option in "${list[@]}"; do
+        .remember "${option}"
+        .msg "Loaded : '$option'"
+        break
+    done
+}
+
+function .cr
+{
+    local list
+    .forget
+    .header "Remove"
+    touch "${_COMMANDS}"
+    mapfile -t list < "${_COMMANDS}"
+    select option in "${list[@]}"; do
+        eval "sed -i '${REPLY}d' ${_COMMANDS}"
+        .msg "Removed : $REPLY) $option"
+        break
+    done
+}
+
+function .d
+{
+    local list
+    .forget
+    touch "${_DIRECTORIES}"
+    mapfile -t list < "${_DIRECTORIES}"
+    if [ -z $1 ]; then
+        .header "Change To"
+        select option in "${list[@]}"; do
+            if [ -d $1 ]; then
+                .msg "Changed to : $option"
+                eval "cd $option"
+                break
+            else
+                .msg "Error : '$1' Does not exist."
+            fi
+        done
+    else
+        if [ -d $@ ]; then
+            if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
+                echo "$@" >> "${_DIRECTORIES}"
+            fi
+            eval "cd $@"
+        else
+             .msg "Error : '$@' Does not exist."
+        fi
+    fi
+}
+
+function .dr
+{
+    local list
+    .forget
+    .header "Remove"
+    touch "${_DIRECTORIES}"
+    mapfile -t list < "${_DIRECTORIES}"
+    select option in "${list[@]}"; do
+        eval "sed -i '${REPLY}d' ${_DIRECTORIES}"
+        .msg "Removed : $REPLY) $option"
+        break
+    done
+}
+
+function .f
+{
+    local list
+    .forget
+    touch "${_FILES}"
+    mapfile -t list < "${_FILES}"
+    if [ -z $1 ]; then
+        .header "Edit"
+        select option in "${list[@]}"; do
+            if [ -f $option ]; then
+                if [ -w $option  ]; then
+                    .remember "${_EDITOR} $option"
+                    eval "${_EDITOR} $option"
+                else
+                    .remember "sudo ${_EDITOR} $option"
+                    eval "sudo ${_EDITOR} $option"
+                fi
+                break
+            else
+                .msg "Error : '$option' File does not exist."
+            fi
+        done
+    else
+        if [ -f $@ ]; then
+            if [[ ! " ${list[*]} " =~ " ${@} " ]]; then
+                echo "$@" >> "${_FILES}"
+            fi
+            if [ -w $@ ]; then
+                .remember "${_EDITOR} $@"
+                eval "${_EDITOR} $@"
+            else
+                .remember "sudo ${_EDITOR} $@"
+                eval "sudo ${_EDITOR} $@"
+            fi
+        else
+            .msg "Error : '$@' File does not exist."
+        fi
+    fi
+}
+
+function .fr
+{
+    local list
+    .forget
+    .header "Remove"
+    touch "${_FILES}"
+    mapfile -t list < "${_FILES}"
+    select option in "${list[@]}"; do
+        eval "sed -i '${REPLY}d' ${_FILES}"
+        .msg "Removed : $REPLY) $option"
+        break
+    done
+}
+
+function .h
+{
+    local pad vpad longest
+    if [ -z $1 ]; then
+        .forget
+    fi
+    pad="$(printf '%0.1s' ' '{1..500})"
+    longest=0
+    for line in "${help[@]}"; do
+        if [ $longest -lt ${#line} ]; then
+            longest=${#line}
+        fi
+    done
+    for ((i=0; i<$((($(tput lines)-${#help[@]})/2)); i++)); do
+        vpad+="\n"
+    done
+    printf "$vpad"
+    for line in "${help[@]}"; do
+        printf '%*.*s%s\n' 0 "$((($(tput cols)-$longest)/2))" "$pad" "$line"
+    done
+    printf "$vpad"
+}
+
+function .l
+{
+    local templates template target target_lines
+    .forget
+    wget -q -O "${_TEMP}" "${_REPO}/templates/.list"
+    if [ -f "${_TEMP}" ]; then
+        mapfile -t templates < "${_TEMP}"
+        rm -f "${_TEMP}"
+        .header "Template Load "
+        select option in "${templates[@]}"; do
+            .msg "Loading '$option' template."
+            wget -q -O "${_TEMP}" "${_REPO}/templates/${option}.t"
+            mapfile -t template < "${_TEMP}"
+            for line in "${template[@]}"; do
+                if [[ ! -z "$line" ]]; then
+                    if [ '-----' ==  "${line:0:5}" ]; then
+                        target=${line:5}
+                        printf "\nTager : %b\n" "${target}"
+                        touch "${_DIR}/${target}"
+                        mapfile -t target_lines < "${_DIR}/${target}"
+                    else
+                        if [[ " ${target_lines[*]} " =~ " ${line} " ]]; then
+                            printf "Skip  : %s\n" "${line}"
+                        else
+                            echo "${line}" >> "${_DIR}/${target}"
+                            printf "Add   : %s\n" "${line}"
+                        fi
+                    fi
+                fi
+            done
+            rm -f "${_TEMP}"
+            break
+        done
+    else
+        .msg "Error : Missing local list file."
+    fi
+}
+
+function .lp
+{
+    .forget
+    printf "\n%b" "-----.helper.d\n"
+    touch "${_DIRECTORIES}"
+    cat "${_DIRECTORIES}"
+    printf "\n%b" "-----.helper.c\n"
+    touch "${_COMMANDS}"
+    cat "${_COMMANDS}"
+    printf "\n%b" "-----.helper.f\n"
+    touch "${_FILES}"
+    cat "${_FILES}"
+    printf "\n\n"
+}
+
+function .lx
+{
+    local agree
+    .forget
+    .header "Empty all the lists."
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        eval "rm -f ${_DIRECTORIES}"
+        eval "rm -f ${_COMMANDS}"
+        eval "rm -f ${_FILES}"
+    fi
+}
+
+function .m
+{
+    local width longest pad help
+    .forget
+    if [ ! -f "${_HELP}" ]; then
+        .remember "wget -q -O ${_HELP} ${_REPO}/readme.md"
+        wget -q -O "${_HELP}" "${_REPO}/readme.md"
+    fi
+    if [ -f "${_HELP}" ]; then
+        mapfile -t help < "${_HELP}"
+        longest=0
+        for line in "${help[@]}"; do
+            if [ $longest -lt ${#line} ]; then
+                longest=${#line}
+            fi
+        done
+        pad="$(printf '%0.1s' ' '{1..500})"
+        width=$(tput cols)
+        printf "\n\n\n\n"
+        for line in "${help[@]}"; do
+            printf '%*.*s%s\n' 0 "$(((width - $longest) / 2))" "$pad" "$line"
+        done
+        printf "\n\n"
+    fi
+}
+
+function .r
+{
+    local agree
+    .forget
+    .header "Remove .helper and all associated files."
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        .remember "rm -f ${_THIS}*"
+        eval "rm -f ${_THIS}*"
+    fi
+}
+
+function .u
+{
+    .forget
+    .remember "wget -q -O ${_THIS} ${_REPO}/.helper"
+    eval      "wget -q -O ${_THIS} ${_REPO}/.helper"
+    .remember "source ${_THIS}"
+    eval      "source ${_THIS}"
+}
+
+function .v
+{
+    .forget
+    splash "$_NAME  |  $_VERSION"
+}
+
+# ---[ Autorun ]----------------------------------------------------------------
+
+.h -
+
     '-----------------------------------------'
     ''
     '.d   Directory to change to.'
