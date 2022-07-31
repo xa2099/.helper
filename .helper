@@ -1,7 +1,7 @@
 # ---[ Configuration ]----------------------------------------------------------
 
 _NAME=".helper"
-_VERSION="22.07.31"
+_VERSION="22.08.01"
 _REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
 _DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 _THIS="${_DIR}/.helper"
@@ -186,7 +186,7 @@ function .cr
     .header "Remove"
     COLUMNS=0
     select option in "${_COMMANDS[@]}"; do
-        unset "_COMMANDS[($REPLY - 1)]"
+        unset _COMMANDS[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
@@ -229,7 +229,7 @@ function .dr
     .header "Remove"
     COLUMNS=0
     select option in "${_DIRECTORIES[@]}"; do
-        unset "_DIRECTORIES[($REPLY - 1)]"
+        unset _DIRECTORIES[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
@@ -279,7 +279,7 @@ function .fr
     .header "Remove"
     COLUMNS=0
     select option in "${_FILES[@]}"; do
-        unset "_FILES[($REPLY - 1)]"
+        unset _FILES[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
