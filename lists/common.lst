@@ -1,10 +1,10 @@
------.helper.d
+### _DIRECTORIES
 /srv/log
 /etc
 
------.helper.c
+### _FILES
+/etc/sudoers
+
+### _COMMANDS
 source .helper
 ls -al /etc
-
------.helper.f
-/etc/sudoers
