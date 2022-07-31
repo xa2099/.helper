@@ -7,6 +7,7 @@ source .helper
 ls -al /etc
 just a bunch of words
 another line with many words
+systemctl restart salt-minion && systemctl status salt-minion
 
 -----.helper.f
 /etc/sudoers
