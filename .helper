@@ -346,7 +346,7 @@ function .lr
     .header "Empty the list."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        echo "" > "${_LIST}"
+        echo " " > "${_LIST}"
     fi
     .load "${_LIST}"
 }
