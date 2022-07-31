@@ -146,7 +146,7 @@ function .b
 function .c
 {
     .forget
-    if [ -z $1 ]; then
+    if [ -z "$@" ]; then
         .header "Execute"
         COLUMNS=0
         select option in "${_COMMANDS[@]}"; do
@@ -197,7 +197,7 @@ function .d
 {
     local list
     .forget
-    if [ -z $1 ]; then
+    if [ -z "$@" ]; then
         .header "Change To"
         COLUMNS=0
         select option in "${_DIRECTORIES[@]}"; do
@@ -240,7 +240,7 @@ function .f
 {
     local list
     .forget
-    if [ -z $1 ]; then
+    if [ -z "$@" ]; then
         .header "Edit"
         COLUMNS=0
         select option in "${_FILES[@]}"; do
@@ -262,7 +262,7 @@ function .f
             _FILES[${#_FILES[@]}]="$@"
             .save
         fi
-        if [ -f $@ && ! -w $@ ]; then
+        if [ -f "$@" && ! -w "$@" ]; then
             .remember "sudo ${_EDITOR} $@"
             eval "sudo ${_EDITOR} $@"
         else
@@ -279,7 +279,7 @@ function .fr
     .header "Remove"
     COLUMNS=0
     select option in "${_FILES[@]}"; do
-        unset "_DIRECTORIES[($REPLY - 1)]"
+        unset "_FILES[($REPLY - 1)]"
         .save
         .msg "Removed : $option"
         break
@@ -330,6 +330,7 @@ function .lg
         rm -f "${_TEMP}"
         break
     done
+    .save
 }
 
 function .lp
