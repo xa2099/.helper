@@ -1,6 +1,6 @@
 # ---[ Configuration ]----------------------------------------------------------
 
-_NAME=".helper
+_NAME=".helper"
 _VERSION="22.07.31"
 _REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
 _DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
