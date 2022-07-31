@@ -373,7 +373,7 @@ function .u
 function .v
 {
     .forget
-    splash "$_NAME  |  $_VERSION"
+    .splash "$_NAME  |  $_VERSION"
 }
 
 # ---[ Autorun ]----------------------------------------------------------------
