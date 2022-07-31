@@ -13,11 +13,6 @@ _HELP="${_DIR}/.helper.md"
 _TEMP="${_DIR}/.helper.t"
 _EDITOR="nano"
 
-# ---[ Aliases ]----------------------------------------------------------------
-
-alias .b="cd -"
-alias .l="ls -alh --group-directories-first"
-
 # ---[ Help ]-------------------------------------------------------------------
 
 help=(
@@ -88,6 +83,12 @@ function .remember
 }
 
 # ---[ Helper Function ]--------------------------------------------------------
+
+function .b
+{
+    .forget
+    cd -
+}
 
 function .c
 {
@@ -249,9 +250,7 @@ function .fr
 function .h
 {
     local pad vpad longest
-    if [ -z $1 ]; then
-        .forget
-    fi
+    .forget
     pad="$(printf '%0.1s' ' '{1..500})"
     longest=0
     for line in "${help[@]}"; do
@@ -267,6 +266,12 @@ function .h
         printf '%*.*s%s\n' 0 "$((($(tput cols)-$longest)/2))" "$pad" "$line"
     done
     printf "$vpad"
+}
+
+function .l
+{
+    .forget
+    ls -alh --group-directories-first "$@"
 }
 
 function .lg
@@ -373,7 +378,7 @@ function .u
 function .v
 {
     .forget
-    .splash "$_NAME  |  $_VERSION"
+    splash "$_NAME  |  $_VERSION"
 }
 
 # ---[ Autorun ]----------------------------------------------------------------
