@@ -44,7 +44,7 @@ Quick Reference
 Manual
 ------
 
-`.m` command will show this "readme.md" file in your concel for your convenience.
+`.m` command will show this "readme.md" file in your terminal for your convenience.
 
 
 Directories
