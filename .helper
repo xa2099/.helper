@@ -6,6 +6,7 @@ _REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
 _DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 _THIS="${_DIR}/.helper"
 _LIST="${_DIR}/.helper.lst"
+_TEMP="${_DIR}/.helper.tmp"
 _HELP="${_DIR}/.helper.md"
 _EDITOR="nano"
 _DIRECTORIES=()
@@ -313,7 +314,7 @@ function .l
 
 function .lg
 {
-    local menu list target target_list
+    local menu
     .forget
     wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/.menu"
     mapfile -t menu < "${_TEMP}"
