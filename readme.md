@@ -7,6 +7,11 @@ This script is designed to streamline several very repetitive command line tasks
 - Edit files.
 - Run commands.
 
+YouTube
+-------
+
+https://www.youtube.com/watch?v=SbOnUc8Lyp8
+
 
 Installing
 ----------
