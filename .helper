@@ -318,7 +318,7 @@ function .lg
     wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/.menu"
     mapfile -t menu < "${_TEMP}"
     rm -f "${_TEMP}"
-    .header " Load List"
+    .header "List Get"
     COLUMNS=0
     select option in "${menu[@]}"; do
         .msg "Loading '$option' lists."
