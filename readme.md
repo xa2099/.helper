@@ -4,8 +4,8 @@
 This script is designed to streamline several very repetitive command line tasks.
 
 - Change directories.
-- Run commands.
 - Edit files.
+- Run commands.
 
 
 Installing
