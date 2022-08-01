@@ -10,7 +10,7 @@ This script is designed to streamline several very repetitive command line tasks
 YouTube
 -------
 
-TL;DR; Watch a video instead. https://www.youtube.com/watch?v=SbOnUc8Lyp8
+TL;DR Watch a video instead. https://www.youtube.com/watch?v=SbOnUc8Lyp8
 
 
 Installing
