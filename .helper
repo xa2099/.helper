@@ -158,11 +158,11 @@ function .c
         done
     else
         .remember "$@"
-        eval "$@"
         if [[ ! " ${_COMMANDS[*]} " =~ " $@ " ]]; then
             _COMMANDS[${#_COMMANDS[@]}]="$@"
             .save
         fi
+        eval "$@"
     fi
 }
 
