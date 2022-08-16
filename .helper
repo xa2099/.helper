@@ -88,28 +88,28 @@ function .load
             if [[ ! -z "$line" ]]; then
                 if [ $line == "cmds" -o $line == "dirs" -o $line == "files" ]; then
                     target="$line"
-                    printf "    %s\n" "$target"
+                    printf "Type : %s\n" "$target"
                 else
                     if [ $target == "dirs" ]; then
-                        if [[ " ${dirs[*]} " =~ " ${line} " ]]; then
-                            printf "[x] %s\n" "${line}"
+                        if [[ "${dirs[*]}" =~ "${line}" ]]; then
+                            printf "skip : %b\n" "${line}"
                         else
                             dirs[${#dirs[@]}]="$line"
-                            printf "[v] %s\n" "${line}"
+                            printf " add : %b\n" "${line}"
                         fi
                     elif [ $target == "files" ]; then
-                        if [[ " ${files[*]} " =~ " ${line} " ]]; then
-                            printf "[x] %s\n" "${line}"
+                        if [[ "${files[*]}" =~ "${line}" ]]; then
+                            printf "skip : %b\n" "${line}"
                         else
                             files[${#files[@]}]="$line"
-                            printf "[v] %s\n" "${line}"
+                            printf " add : %b\n" "${line}"
                         fi
                     elif [ $target == "cmds" ]; then
-                        if [[ " ${cmds[*]} " =~ " ${line} " ]]; then
-                            printf "[x] %s\n" "${line}"
+                        if [[ "${cmds[*]}" =~ "${line}" ]]; then
+                            printf "skip : %b\n" "${line}"
                         else
                             cmds[${#cmds[@]}]="$line"
-                            printf "[v] %s\n" "${line}"
+                            printf " add : %b\n" "${line}"
                         fi
                     fi
                 fi

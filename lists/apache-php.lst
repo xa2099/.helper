@@ -1,13 +1,13 @@
-### _DIRECTORIES
+dirs
 /etc/php/7.4/apache2/conf.d/
 /etc/apache2/sites-available/
 /var/log/apache2/
 
-### _FILES
+files
 /etc/apache2/apache2.conf
 /etc/php/7.4/apache2/php.ini
 
-### _COMMANDS
+cmds
 cat /etc/php/7.4/apache2/conf.d/*
 systemctl status apache2
 systemctl restart apache2 && systemctl status apache2

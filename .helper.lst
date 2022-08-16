@@ -1,0 +1,13 @@
+cmds
+source .helper
+ls -al /etc
+
+dirs
+/srv/log
+/etc
+files
+source .helper
+ls -al /etc
+/srv/log
+/etc/sudoers
+
