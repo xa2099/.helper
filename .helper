@@ -86,25 +86,25 @@ function .load
         mapfile -t list < "$@"
         for line in "${list[@]}"; do
             if [[ ! -z "$line" ]]; then
-                if [ $line == "cmds:" -o $line == "dirs:" -o $line == "files:" ]; then
+                if [ $line == "cmds" -o $line == "dirs" -o $line == "files" ]; then
                     target="$line"
                     printf "%b\n" "$target"
                 else
-                    if [ $target == "dirs:" ]; then
+                    if [ $target == "dirs" ]; then
                         if [[ " ${dirs[*]} " =~ " ${line} " ]]; then
                             printf "[x] %s\n" "${line}"
                         else
                             dirs[${#dirs[@]}]="$line"
                             printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "files:" ]; then
+                    elif [ $target == "files" ]; then
                         if [[ " ${files[*]} " =~ " ${line} " ]]; then
                             printf "[x] %s\n" "${line}"
                         else
                             files[${#files[@]}]="$line"
                             printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "cmds:" ]; then
+                    elif [ $target == "cmds" ]; then
                         if [[ " ${cmds[*]} " =~ " ${line} " ]]; then
                             printf "[x] %s\n" "${line}"
                         else
