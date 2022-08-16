@@ -88,7 +88,7 @@ function .load
             if [[ ! -z "$line" ]]; then
                 if [ $line == "cmds" -o $line == "dirs" -o $line == "files" ]; then
                     target="$line"
-                    printf "%b\n" "$target"
+                    printf "    %s\n" "$target"
                 else
                     if [ $target == "dirs" ]; then
                         if [[ " ${dirs[*]} " =~ " ${line} " ]]; then
