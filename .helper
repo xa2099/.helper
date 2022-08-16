@@ -120,16 +120,16 @@ function .load
 
 function .save
 {
-    echo "cmds:" > "$list_file"
+    echo "cmds" > "$list_file"
     for item in "${cmds[@]}"; do
         echo "$item" >> "$list_file"
     done
     echo "" >> "$list_file"
-    echo "dirs:" >> "$list_file"
+    echo "dirs" >> "$list_file"
     for item in "${dirs[@]}"; do
         echo "$item" >> "$list_file"
     done
-    echo "files:" >> "$list_file"
+    echo "files" >> "$list_file"
     for item in "${files[@]}"; do
         echo "$item" >> "$list_file"
     done
