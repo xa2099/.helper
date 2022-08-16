@@ -86,7 +86,7 @@ function .load
         mapfile -t list < "$@"
         for line in "${list[@]}"; do
             if [[ ! -z "$line" ]]; then
-                if [ $line == "cmds:" || $line == "dirs:" || $line == "files:" ]; then
+                if [ $line == "cmds:" ] || [ $line == "dirs:" ] || [ $line == "files:" ]; then
                     target="$line"
                     printf "%b\n" "$target"
                 else
