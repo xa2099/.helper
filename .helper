@@ -1,22 +1,22 @@
-# ---[ Configuration ]----------------------------------------------------------
+script=".helper"
+version="22.08.16"
 
-_NAME=".helper"
-_VERSION="22.08.01"
-_REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
-_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-_THIS="${_DIR}/.helper"
-_LIST="${_DIR}/.helper.lst"
-_TEMP="${_DIR}/.helper.tmp"
-_HELP="${_DIR}/.helper.md"
-_EDITOR="nano"
-_DIRECTORIES=()
-_COMMANDS=()
-_FILES=()
+repo="https://raw.githubusercontent.com/xa2099/.helper.sh/ui-tweaks"
+current_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+this_file="${current_dir}/.helper"
+list_file="${current_dir}/.helper.lst"
+temp_file="${current_dir}/.helper.tmp"
+help_file="${current_dir}/.helper.md"
+editor="nano"
+
+cmds=()
+dirs=()
+files=()
 
 # ---[ Help ]-------------------------------------------------------------------
 
 help=(
-    "$_NAME"
+    "$script"
     '-----------------------------------------'
     ''
     '.h   Help (this menu).'
@@ -41,7 +41,7 @@ help=(
     '.v   Script version.'
     ''
     '-----------------------------------------'
-    "                              v. $_VERSION"
+    "                              v. $version"
 )
 
 # ---[ Internal Functions ]-----------------------------------------------------
@@ -86,30 +86,30 @@ function .load
         mapfile -t list < "$@"
         for line in "${list[@]}"; do
             if [[ ! -z "$line" ]]; then
-                if [ '###' == "${line:0:3}" ]; then
-                    target=${line:4}
-                    printf "\nTarget : %b\n" "${target/_}"
+                if [ $line == "cmds:" || $line == "dirs:" || $line == "files:" ]; then
+                    target="$line"
+                    printf "%b\n" "$target"
                 else
-                    if [ $target == "_DIRECTORIES" ]; then
-                        if [[ " ${_DIRECTORIES[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    if [ $target == "dirs:" ]; then
+                        if [[ " ${dirs[*]} " =~ " ${line} " ]]; then
+                            printf "[x] %s\n" "${line}"
                         else
-                            _DIRECTORIES[${#_DIRECTORIES[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            dirs[${#dirs[@]}]="$line"
+                            printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "_FILES" ]; then
-                        if [[ " ${_FILES[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    elif [ $target == "files" ]; then
+                        if [[ " ${files[*]} " =~ " ${line} " ]]; then
+                            printf "[x] %s\n" "${line}"
                         else
-                            _FILES[${#_FILES[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            files[${#files[@]}]="$line"
+                            printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "_COMMANDS" ]; then
-                        if [[ " ${_COMMANDS[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    elif [ $target == "cmds" ]; then
+                        if [[ " ${cmds[*]} " =~ " ${line} " ]]; then
+                            printf "[x] %s\n" "${line}"
                         else
-                            _COMMANDS[${#_COMMANDS[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            cmds[${#cmds[@]}]="$line"
+                            printf "[v] %s\n" "${line}"
                         fi
                     fi
                 fi
@@ -120,20 +120,20 @@ function .load
 
 function .save
 {
-    echo "### _DIRECTORIES" > "$_LIST"
-    for item in "${_DIRECTORIES[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "cmds:" > "$list_file"
+    for item in "${cmds[@]}"; do
+        echo "$item" >> "$list_file"
     done
-    echo "" >> "$_LIST"
-    echo "### _FILES" >> "$_LIST"
-    for item in "${_FILES[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "" >> "$list_file"
+    echo "dirs:" >> "$list_file"
+    for item in "${dirs[@]}"; do
+        echo "$item" >> "$list_file"
     done
-    echo "" >> "$_LIST"
-    echo "### _COMMANDS" >> "$_LIST"
-    for item in "${_COMMANDS[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "files:" >> "$list_file"
+    for item in "${files[@]}"; do
+        echo "$item" >> "$list_file"
     done
+    echo "" >> "$list_file"
 }
 
 # ---[ Helper Function ]--------------------------------------------------------
@@ -149,8 +149,7 @@ function .c
     .forget
     if [ -z "$@" ]; then
         .header "Execute"
-        COLUMNS=0
-        select option in "${_COMMANDS[@]}"; do
+        select option in "${cmds[@]}"; do
             .msg "Executed : $option"
             .remember "$option"
             eval "$option"
@@ -158,8 +157,8 @@ function .c
         done
     else
         .remember "$@"
-        if [[ ! " ${_COMMANDS[*]} " =~ " $@ " ]]; then
-            _COMMANDS[${#_COMMANDS[@]}]="$@"
+        if [[ ! " ${cmds[*]} " =~ " $@ " ]]; then
+            cmds[${#cmds[@]}]="$@"
             .save
         fi
         eval "$@"
@@ -171,8 +170,7 @@ function .cl
     local list
     .forget
     .header "Load to History"
-    COLUMNS=0
-    select option in "${_COMMANDS[@]}"; do
+    select option in "${cmds[@]}"; do
         .remember "${option}"
         .msg "Loaded : '$option'"
         break
@@ -183,9 +181,8 @@ function .cr
 {
     .forget
     .header "Remove"
-    COLUMNS=0
-    select option in "${_COMMANDS[@]}"; do
-        unset _COMMANDS[$((REPLY - 1))]
+    select option in "${cmds[@]}"; do
+        unset cmds[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
@@ -198,8 +195,7 @@ function .d
     .forget
     if [ -z "$@" ]; then
         .header "Change To"
-        COLUMNS=0
-        select option in "${_DIRECTORIES[@]}"; do
+        select option in "${dirs[@]}"; do
             if [ -d $1 ]; then
                 .msg "Changed to : $option"
                 eval "cd $option"
@@ -210,8 +206,8 @@ function .d
         done
     else
         if [ -d $@ ]; then
-            if [[ ! " ${_DIRECTORIES[*]} " =~ " ${@} " ]]; then
-                _DIRECTORIES[${#_DIRECTORIES[@]}]="$@"
+            if [[ ! " ${dirs[*]} " =~ " ${@} " ]]; then
+                dirs[${#dirs[@]}]="$@"
                 .save
             fi
             eval "cd $@"
@@ -226,9 +222,8 @@ function .dr
     local list
     .forget
     .header "Remove"
-    COLUMNS=0
-    select option in "${_DIRECTORIES[@]}"; do
-        unset _DIRECTORIES[$((REPLY - 1))]
+    select option in "${dirs[@]}"; do
+        unset dirs[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
@@ -241,15 +236,14 @@ function .f
     .forget
     if [ -z "$@" ]; then
         .header "Edit"
-        COLUMNS=0
-        select option in "${_FILES[@]}"; do
+        select option in "${files[@]}"; do
             if [ -f $option ]; then
                 if [ -w $option  ]; then
-                    .remember "${_EDITOR} $option"
-                    eval "${_EDITOR} $option"
+                    .remember "${editor} $option"
+                    eval "${editor} $option"
                 else
-                    .remember "sudo ${_EDITOR} $option"
-                    eval "sudo ${_EDITOR} $option"
+                    .remember "sudo ${editor} $option"
+                    eval "sudo ${editor} $option"
                 fi
                 break
             else
@@ -257,16 +251,16 @@ function .f
             fi
         done
     else
-        if [[ ! " ${_FILES[*]} " =~ " ${@} " ]]; then
-            _FILES[${#_FILES[@]}]="$@"
+        if [[ ! " ${files[*]} " =~ " ${@} " ]]; then
+            files[${#files[@]}]="$@"
             .save
         fi
         if [[ -f "$@" && ! -w "$@" ]]; then
-            .remember "sudo ${_EDITOR} $@"
-            eval "sudo ${_EDITOR} $@"
+            .remember "sudo ${editor} $@"
+            eval "sudo ${editor} $@"
         else
-            .remember "${_EDITOR} $@"
-            eval "${_EDITOR} $@"
+            .remember "${editor} $@"
+            eval "${editor} $@"
         fi
     fi
 }
@@ -276,9 +270,8 @@ function .fr
     local list
     .forget
     .header "Remove"
-    COLUMNS=0
-    select option in "${_FILES[@]}"; do
-        unset _FILES[$((REPLY - 1))]
+    select option in "${files[@]}"; do
+        unset files[$((REPLY - 1))]
         .save
         .msg "Removed : $option"
         break
@@ -316,17 +309,16 @@ function .lg
 {
     local menu
     .forget
-    wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/.menu"
-    mapfile -t menu < "${_TEMP}"
-    rm -f "${_TEMP}"
+    wget --no-cache -q -O "${temp_file}" "${repo}/lists/.menu"
+    mapfile -t menu < "${temp_file}"
+    rm -f "${temp_file}"
     .header "List Get"
-    COLUMNS=0
     select option in "${menu[@]}"; do
         .msg "Loading '$option' lists."
-        wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
-        mapfile -t list < "${_TEMP}"
-        .load "${_TEMP}"
-        rm -f "${_TEMP}"
+        wget --no-cache -q -O "${temp_file}" "${repo}/lists/${option}.lst"
+        mapfile -t list < "${temp_file}"
+        .load "${temp_file}"
+        rm -f "${temp_file}"
         break
     done
     .save
@@ -336,7 +328,7 @@ function .lp
 {
     .forget
     .header "List"
-    cat "${_LIST}"
+    cat "${list_file}"
     printf "\n\n"
 }
 
@@ -347,21 +339,21 @@ function .lr
     .header "Empty the list."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        echo " " > "${_LIST}"
+        echo " " > "${list_file}"
     fi
-    _DIRECTORIES=()
-    _FILES=()
-    _COMMANDS=()
+    dirs=()
+    files=()
+    cmds=()
 }
 
 function .m
 {
     .forget
-    if [ ! -f "${_HELP}" ]; then
-        wget --no-cache -q -O "${_HELP}" "${_REPO}/readme.md"
+    if [ ! -f "${help_file}" ]; then
+        wget --no-cache -q -O "${help_file}" "${repo}/readme.md"
     fi
-    if [ -f "${_HELP}" ]; then
-        cat "${_HELP}" | more
+    if [ -f "${help_file}" ]; then
+        cat "${help_file}" | more
     else
         .msg "Error : Could not download."
     fi
@@ -374,27 +366,27 @@ function .r
     .header "Remove .helper and all associated files."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        .remember "rm -f ${_THIS}*"
-        eval "rm -f ${_THIS}*"
+        .remember "rm -f ${this_file}*"
+        eval "rm -f ${this_file}*"
     fi
 }
 
 function .u
 {
     .forget
-    .remember "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
-    eval "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
-    .remember "source ${_THIS}"
-    eval "source ${_THIS}"
+    .remember "wget --no-cache -q -O ${this_file} ${repo}/.helper"
+    eval "wget --no-cache -q -O ${this_file} ${repo}/.helper"
+    .remember "source ${this_file}"
+    eval "source ${this_file}"
 }
 
 function .v
 {
     .forget
-    .splash "$_NAME  |  $_VERSION"
+    .splash "$script  |  $version"
 }
 
 # ---[ Autorun ]----------------------------------------------------------------
 
-.load "$_LIST"
-.splash "$_NAME  |  run .h"
+.load "$list_file"
+.splash "$script  |  run .h"
