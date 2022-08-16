@@ -97,14 +97,14 @@ function .load
                             dirs[${#dirs[@]}]="$line"
                             printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "files" ]; then
+                    elif [ $target == "files:" ]; then
                         if [[ " ${files[*]} " =~ " ${line} " ]]; then
                             printf "[x] %s\n" "${line}"
                         else
                             files[${#files[@]}]="$line"
                             printf "[v] %s\n" "${line}"
                         fi
-                    elif [ $target == "cmds" ]; then
+                    elif [ $target == "cmds:" ]; then
                         if [[ " ${cmds[*]} " =~ " ${line} " ]]; then
                             printf "[x] %s\n" "${line}"
                         else
