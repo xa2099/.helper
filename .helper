@@ -159,6 +159,17 @@ function .save                                                          # save a
 
 # ---[ Helper Function ]------------------------------------------------------------------------------------------------
 
+function .a                                                             # create autostart
+{
+    .header "Auto Start"
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        echo "" >> ~/.profile
+        echo "source $this_file" >> ~/.profile
+        .msg "Added 'source .helper' to '~/.profile."
+    fi
+}
+
 function .b                                                             # back directory
 {
     .forget
@@ -175,7 +186,7 @@ function .c                                                             # comman
             printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
             (( counter++ ))
         done
-        read -p "    : " choice
+        read -p " : " choice
         .remember "${cmds[(($choice-1))]}"
         .msg "Running : ${cmds[(($choice-1))]}"
         eval "${cmds[(($choice-1))]}"
@@ -198,7 +209,7 @@ function .cl                                                            # comman
         printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
         (( counter++ ))
     done
-    read -p "    : " choice
+    read -p " : " choice
     .remember "${cmds[(($choice-1))]}"
     .msg "Loaded : ${cmds[(($choice-1))]} "
 }
@@ -212,7 +223,7 @@ function .clc                                                           # comman
         printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
         (( counter++ ))
     done
-    read -p "    : " choice
+    read -p " : " choice
     .remember ".c \"${cmds[(($choice-1))]}\""
     .msg "Loaded : .c \"${cmds[(($choice-1))]}\""
 }
@@ -226,7 +237,7 @@ function .cr                                                            # comman
         printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
         (( counter++ ))
     done
-    read -p "    : " choice
+    read -p " : " choice
     .msg "Removed : ${cmds[(($choice-1))]} "
     unset cmds[$((choice-1))]
     .save
@@ -246,7 +257,7 @@ function .d                                                             # direct
             fi
             (( counter++ ))
         done
-        read -p "    : " choice
+        read -p " : " choice
         .msg "Changing To : ${dirs[(($choice-1))]}"
         eval "cd ${dirs[(($choice-1))]}"
     else
@@ -269,14 +280,14 @@ function .dr                                                            # direct
     .forget
     .header "Directory Remove"
     for item in "${dirs[@]}"; do
-        if [ -f "$item" ]; then
+        if [ -d "$item" ]; then
             printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
         else
             printf "%-3s%s. \e[9m%s\e[0m\n\n" "$indent" "$counter" "$item"
         fi
         (( counter++ ))
     done
-    read -p "    : " choice
+    read -p " : " choice
     .msg "Removed : ${dirs[(($choice-1))]} "
     unset dirs[$((choice-1))]
     .save
@@ -312,7 +323,7 @@ function .f                                                             # files
             files[${#files[@]}]="$@"
             .save
         fi
-        if [[ -f "$@" && ! -w "$@" ]]; then
+        if [[ -f "$@" ]]; then
             if [[ ! -w "$@" ]]; then
                 .remember "sudo ${editor} $@"
                 eval "sudo ${editor} $@"
