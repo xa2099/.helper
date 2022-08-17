@@ -1,10 +1,10 @@
-cmds
+cmds:
 source .helper
 ls -al /etc
 
-dirs
+dirs:
 /srv/log
 /etc
 
-files
+files:
 /etc/sudoers
