@@ -47,7 +47,7 @@ help=(
 
 # ---[ Internal Functions ]---------------------------------------------------------------------------------------------
 
-function .autorun                                                       # funtion to bootstrap it all
+function .bootstrap                                                       # funtion to bootstrap it all
 {
     .header "$script | v.$version"
 
@@ -164,9 +164,19 @@ function .a                                                             # create
     .header "Auto Start"
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        echo "" >> ~/.profile
-        echo "source $this_file" >> ~/.profile
-        .msg "Added 'source .helper' to '~/.profile."
+        echo "" >> ~/.bashrc
+        echo "source $this_file" >> ~/.bashrc
+        .msg "Added 'source $this_file' to '~/.bashrc."
+    fi
+}
+
+function .ar                                                            # remove autostart
+{
+    .header "Remove Auto Start"
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        sed -i -e '/.helper/d' ~/.bashrc
+        .msg "Removed 'source $this_file' from '~/.bashrc'."
     fi
 }
 
@@ -467,4 +477,4 @@ function .v                                                             # versio
 
 # ---[ Autorun ]--------------------------------------------------------------------------------------------------------
 
-.autorun
+.bootstrap
