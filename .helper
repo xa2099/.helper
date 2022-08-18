@@ -41,6 +41,9 @@ help=(
     '.u    Update to the latest version.'
     '.v    Script version.'
     ''
+    '.a    Autostart .helper on login.'
+    '.ar   Autostart Remove.'
+    ''
     '-------------------------------------------------'
     "                                      v. $version"
 )
