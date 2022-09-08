@@ -1,62 +1,82 @@
-# ---[ Configuration ]----------------------------------------------------------
+script=".helper"
+version="22.08.16"
 
-_NAME=".helper"
-_VERSION="22.08.01"
-_REPO="https://raw.githubusercontent.com/xa2099/.helper.sh/main"
-_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-_THIS="${_DIR}/.helper"
-_LIST="${_DIR}/.helper.lst"
-_TEMP="${_DIR}/.helper.tmp"
-_HELP="${_DIR}/.helper.md"
-_EDITOR="nano"
-_DIRECTORIES=()
-_COMMANDS=()
-_FILES=()
+repo="https://raw.githubusercontent.com/xa2099/.helper.sh/ui-tweaks"
+current_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+this_file="${current_dir}/.helper"
+list_file="${current_dir}/.helper.lst"
+temp_file="${current_dir}/.helper.tmp"
+help_file="${current_dir}/.helper.md"
+editor="nano"
 
-# ---[ Help ]-------------------------------------------------------------------
+cmds=()
+dirs=()
+files=()
+
+# ---[ Help ]-----------------------------------------------------------------------------------------------------------
 
 help=(
-    "$_NAME"
-    '-----------------------------------------'
+    "$script"
+    '-------------------------------------------------'
     ''
-    '.h   Help (this menu).'
-    '.m   Manual.'
+    '.h    Help (this menu).'
+    '.m    Manual.'
     ''
-    '.d   Directory to change to.'
-    '.dr  Directory Remove from the list.'
+    '.d    Directory to change to.'
+    '.dr   Directory Remove from the list.'
     ''
-    '.f   File edit.'
-    '.fr  File Remove from the list.'
+    '.f    File edit.'
+    '.fr   File Remove from the list.'
     ''
-    '.c   Command to execute.'
-    '.cl  Command Load as last history item.'
-    '.cr  Command Remove from the list.'
+    '.c    Command to execute.'
+    '.cl   Command Load to history.'
+    '.clc  Command Load to history with .c and quoted.'
+    '.cr   Command Remove from the list.'
     ''
-    '.lg  List Get.'
-    '.lp  List Print.'
-    '.lr  List Remove.'
+    '.lg   List Get.'
+    '.lp   List Print.'
+    '.lr   List Remove.'
     ''
-    '.r   Remove .helper and associated files.'
-    '.u   Update to the latest version.'
-    '.v   Script version.'
+    '.r    Remove .helper and associated files.'
+    '.u    Update to the latest version.'
+    '.v    Script version.'
     ''
-    '-----------------------------------------'
-    "                              v. $_VERSION"
+    '.a    Autostart .helper on login.'
+    '.ar   Autostart Remove.'
+    ''
+    '-------------------------------------------------'
+    "                                      v. $version"
 )
 
-# ---[ Internal Functions ]-----------------------------------------------------
+# ---[ Internal Functions ]---------------------------------------------------------------------------------------------
 
-function .header
+function .bootstrap                                                       # funtion to bootstrap it all
+{
+    .header "$script | v.$version"
+
+    .msg "Loading local lists :"
+    .load "$list_file"
+
+    if [ -z $(which "$editor") ]; then
+        .msg "'$editor' is not installed. Switching to 'vi'."
+        editor="vi"
+    fi
+
+    .msg "Type '.h' for help."
+}
+
+function .header                                                        # print header
 {
     local pad="$(printf '%0.1s' '-'{1..500})"
-    printf '\n\n\n---%b%*.*s\n\n' "[ $@ ]" 0 "$(($(tput cols)-10-${#1}))" "$pad"
-}
-function .msg
-{
-    printf "\n---[ %b\n\n\n" "$1"
+    printf '\n---%b%*.*s\n\n' "[ $@ ]" 0 "$(($(tput cols)-10-${#1}))" "$pad"
 }
 
-function .splash
+function .msg                                                           # print message
+{
+    printf "\n---[ %b\n\n" "$1"
+}
+
+function .splash                                                        # vertically and horizontaly centered message
 {
     local pad
     pad="$(printf '%0.1s' ' '{1..500})"
@@ -69,149 +89,195 @@ function .splash
     done
 }
 
-function .forget
+function .forget                                                        # remove last 'history' item
 {
     history -d $(history 1)
 }
 
-function .remember
+function .remember                                                      # add to 'history'
 {
     history -s "$@"
 }
 
-function .load
+function .load                                                          # load arrays from file
 {
     local list target
     if [ -f "$@" ]; then
         mapfile -t list < "$@"
         for line in "${list[@]}"; do
             if [[ ! -z "$line" ]]; then
-                if [ '###' == "${line:0:3}" ]; then
-                    target=${line:4}
-                    printf "\nTarget : %b\n" "${target/_}"
+                if [ "$line" == "cmds:" -o "$line" == "dirs:" -o "$line" == "files:" ]; then
+                    printf "   %s\n" "$line"
+                    target="${line/:}"
                 else
-                    if [ $target == "_DIRECTORIES" ]; then
-                        if [[ " ${_DIRECTORIES[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    if [ "$target" == "dirs" ]; then
+                        if [[ " ${dirs[*]} " =~ " ${line} " ]]; then
+                            printf "     \e[9m%s\e[0m\n" "${line}"
                         else
-                            _DIRECTORIES[${#_DIRECTORIES[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            dirs[${#dirs[@]}]="$line"
+                            printf "     %s\n" "${line}"
                         fi
-                    elif [ $target == "_FILES" ]; then
-                        if [[ " ${_FILES[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    elif [ "$target" == "files" ]; then
+                        if [[ " ${files[*]} " =~ " ${line} " ]]; then
+                            printf "     \e[9m%s\e[0m\n" "${line}"
                         else
-                            _FILES[${#_FILES[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            files[${#files[@]}]="$line"
+                            printf "     %s\n" "${line}"
                         fi
-                    elif [ $target == "_COMMANDS" ]; then
-                        if [[ " ${_COMMANDS[*]} " =~ " ${line} " ]]; then
-                            printf "  Skip : %s\n" "${line}"
+                    elif [ "$target" == "cmds" ]; then
+                        if [[ " ${cmds[*]} " =~ " $line " ]]; then
+                            [printf "     \e[9m%s\e[0m\n" "${line}"
                         else
-                            _COMMANDS[${#_COMMANDS[@]}]="$line"
-                            printf "   Add : %s\n" "${line}"
+                            cmds[${#cmds[@]}]="$line"
+                            printf "     %s\n" "${line}"
                         fi
                     fi
                 fi
+            else
+                printf "\n"
             fi
         done
+        printf "\n"
     fi
 }
 
-function .save
+function .save                                                          # save arrays to file
 {
-    echo "### _DIRECTORIES" > "$_LIST"
-    for item in "${_DIRECTORIES[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "cmds:" > "$list_file"
+    for item in "${cmds[@]}"; do
+        echo "$item" >> "$list_file"
     done
-    echo "" >> "$_LIST"
-    echo "### _FILES" >> "$_LIST"
-    for item in "${_FILES[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "" >> "$list_file"
+    echo "dirs:" >> "$list_file"
+    for item in "${dirs[@]}"; do
+        echo "$item" >> "$list_file"
     done
-    echo "" >> "$_LIST"
-    echo "### _COMMANDS" >> "$_LIST"
-    for item in "${_COMMANDS[@]}"; do
-        echo "$item" >> "$_LIST"
+    echo "" >> "$list_file"
+    echo "files:" >> "$list_file"
+    for item in "${files[@]}"; do
+        echo "$item" >> "$list_file"
     done
+    echo "" >> "$list_file"
 }
 
-# ---[ Helper Function ]--------------------------------------------------------
+# ---[ Helper Function ]------------------------------------------------------------------------------------------------
 
-function .b
+function .a                                                             # create autostart
+{
+    .header "Auto Start"
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        echo "" >> ~/.bashrc
+        echo "source $this_file" >> ~/.bashrc
+        .msg "Added 'source $this_file' to '~/.bashrc."
+    fi
+}
+
+function .ar                                                            # remove autostart
+{
+    .header "Remove Auto Start"
+    read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
+    if [ "${agree}" == "yes" ]; then
+        sed -i -e '/.helper/d' ~/.bashrc
+        .msg "Removed 'source $this_file' from '~/.bashrc'."
+    fi
+}
+
+function .b                                                             # back directory
 {
     .forget
     cd -
 }
 
-function .c
+function .c                                                             # commands
 {
+    local item choice counter=1
     .forget
     if [ -z "$@" ]; then
-        .header "Execute"
-        COLUMNS=0
-        select option in "${_COMMANDS[@]}"; do
-            .msg "Executed : $option"
-            .remember "$option"
-            eval "$option"
-            break
+        .header "Command"
+        for item in "${cmds[@]}"; do
+            printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+            (( counter++ ))
         done
+        read -p " : " choice
+        .remember "${cmds[(($choice-1))]}"
+        .msg "Running : ${cmds[(($choice-1))]}"
+        eval "${cmds[(($choice-1))]}"
     else
         .remember "$@"
-        if [[ ! " ${_COMMANDS[*]} " =~ " $@ " ]]; then
-            _COMMANDS[${#_COMMANDS[@]}]="$@"
+        if [[ ! " ${cmds[*]} " =~ " $@ " ]]; then
+            cmds[${#cmds[@]}]="$@"
             .save
         fi
         eval "$@"
     fi
 }
 
-function .cl
+function .cl                                                            # command load
 {
-    local list
+    local item choice counter=1
     .forget
-    .header "Load to History"
-    COLUMNS=0
-    select option in "${_COMMANDS[@]}"; do
-        .remember "${option}"
-        .msg "Loaded : '$option'"
-        break
+    .header "Command Load"
+    for item in "${cmds[@]}"; do
+        printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        (( counter++ ))
     done
+    read -p " : " choice
+    .remember "${cmds[(($choice-1))]}"
+    .msg "Loaded : ${cmds[(($choice-1))]} "
 }
 
-function .cr
+function .clc                                                           # command load with .c
 {
+    local item choice counter=1
     .forget
-    .header "Remove"
-    COLUMNS=0
-    select option in "${_COMMANDS[@]}"; do
-        unset _COMMANDS[$((REPLY - 1))]
-        .save
-        .msg "Removed : $option"
-        break
+    .header "Command Load Command"
+    for item in "${cmds[@]}"; do
+        printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        (( counter++ ))
     done
+    read -p " : " choice
+    .remember ".c \"${cmds[(($choice-1))]}\""
+    .msg "Loaded : .c \"${cmds[(($choice-1))]}\""
 }
 
-function .d
+function .cr                                                            # command remove
 {
-    local list
+    local item choice counter=1
+    .forget
+    .header "Command Remove"
+    for item in "${cmds[@]}"; do
+        printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        (( counter++ ))
+    done
+    read -p " : " choice
+    .msg "Removed : ${cmds[(($choice-1))]} "
+    unset cmds[$((choice-1))]
+    .save
+}
+
+function .d                                                             # directories
+{
+    local item choice counter=1
     .forget
     if [ -z "$@" ]; then
-        .header "Change To"
-        COLUMNS=0
-        select option in "${_DIRECTORIES[@]}"; do
-            if [ -d $1 ]; then
-                .msg "Changed to : $option"
-                eval "cd $option"
-                break
+        .header "Directory"
+        for item in "${dirs[@]}"; do
+            if [ -d "$item" ]; then
+                printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
             else
-                .msg "Error : '$1' Does not exist."
+                printf "%-3s%s. \e[9m%s\e[0m\n\n" "$indent" "$counter" "$item"
             fi
+            (( counter++ ))
         done
+        read -p " : " choice
+        .msg "Changing To : ${dirs[(($choice-1))]}"
+        eval "cd ${dirs[(($choice-1))]}"
     else
         if [ -d $@ ]; then
-            if [[ ! " ${_DIRECTORIES[*]} " =~ " ${@} " ]]; then
-                _DIRECTORIES[${#_DIRECTORIES[@]}]="$@"
+            if [[ ! " ${dirs[*]} " =~ " ${@} " ]]; then
+                .msg "Saving dir..."
+                dirs[${#dirs[@]}]="$@"
                 .save
             fi
             eval "cd $@"
@@ -221,71 +287,89 @@ function .d
     fi
 }
 
-function .dr
+function .dr                                                            # directrory remove
 {
-    local list
+    local item choice counter=1
     .forget
-    .header "Remove"
-    COLUMNS=0
-    select option in "${_DIRECTORIES[@]}"; do
-        unset _DIRECTORIES[$((REPLY - 1))]
-        .save
-        .msg "Removed : $option"
-        break
+    .header "Directory Remove"
+    for item in "${dirs[@]}"; do
+        if [ -d "$item" ]; then
+            printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        else
+            printf "%-3s%s. \e[9m%s\e[0m\n\n" "$indent" "$counter" "$item"
+        fi
+        (( counter++ ))
     done
+    read -p " : " choice
+    .msg "Removed : ${dirs[(($choice-1))]} "
+    unset dirs[$((choice-1))]
+    .save
 }
 
-function .f
+function .f                                                             # files
 {
-    local list
+    local item choice counter=1
     .forget
     if [ -z "$@" ]; then
-        .header "Edit"
-        COLUMNS=0
-        select option in "${_FILES[@]}"; do
-            if [ -f $option ]; then
-                if [ -w $option  ]; then
-                    .remember "${_EDITOR} $option"
-                    eval "${_EDITOR} $option"
-                else
-                    .remember "sudo ${_EDITOR} $option"
-                    eval "sudo ${_EDITOR} $option"
-                fi
-                break
+        .header "File"
+        for item in "${files[@]}"; do
+            if [ -f "$item" ]; then
+                printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
             else
-                .msg "Error : '$option' File does not exist."
+                printf "%-3s%s. \e[9m%s\e[0m\n\n" "$indent" "$counter" "$item"
             fi
+            (( counter++ ))
         done
+        read -p "    : " choice
+        if [ -w ${files[(($choice-1))]}  ]; then
+            .remember "${editor} ${files[(($choice-1))]}"
+            .msg "Opening : ${files[(($choice-1))]}"
+            eval "${editor} ${files[(($choice-1))]}"
+        else
+            .remember "sudo ${editor} ${files[(($choice-1))]}"
+            .msg "Opening : ${files[(($choice-1))]} (using sudo)"
+            eval "sudo ${editor} ${files[(($choice-1))]}"
+        fi
+        eval "cd ${dirs[(($choice-1))]}"
     else
-        if [[ ! " ${_FILES[*]} " =~ " ${@} " ]]; then
-            _FILES[${#_FILES[@]}]="$@"
+        if [[ ! " ${files[*]} " =~ " ${@} " ]]; then
+            files[${#files[@]}]="$@"
             .save
         fi
-        if [[ -f "$@" && ! -w "$@" ]]; then
-            .remember "sudo ${_EDITOR} $@"
-            eval "sudo ${_EDITOR} $@"
+        if [[ -f "$@" ]]; then
+            if [[ ! -w "$@" ]]; then
+                .remember "sudo ${editor} $@"
+                eval "sudo ${editor} $@"
+            else
+                .remember "${editor} $@"
+                eval "${editor} $@"
+            fi
         else
-            .remember "${_EDITOR} $@"
-            eval "${_EDITOR} $@"
+            .msg "Error : '$@' Does not exist."
         fi
     fi
 }
 
-function .fr
+function .fr                                                            # file remove
 {
-    local list
+    local item choice counter=1
     .forget
-    .header "Remove"
-    COLUMNS=0
-    select option in "${_FILES[@]}"; do
-        unset _FILES[$((REPLY - 1))]
-        .save
-        .msg "Removed : $option"
-        break
+    .header "File Remove"
+    for item in "${files[@]}"; do
+        if [ -f "$item" ]; then
+            printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        else
+            printf "%-3s%s. \e[9m%s\e[0m\n\n" "$indent" "$counter" "$item"
+        fi
+        (( counter++ ))
     done
+    read -p "    : " choice
+    .msg "Removed : ${files[(($choice-1))]} "
+    unset files[$((choice-1))]
+    .save
 }
 
-function .h
+function .h                                                             # help
 {
     local pad vpad longest
     .forget
@@ -306,95 +390,94 @@ function .h
     printf "$vpad"
 }
 
-function .l
+function .l                                                             # list directory
 {
     .forget
     ls -alh --group-directories-first "$@"
 }
 
-function .lg
+function .lg                                                            # list get
 {
     local menu
     .forget
-    wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/.menu"
-    mapfile -t menu < "${_TEMP}"
-    rm -f "${_TEMP}"
+    wget --no-cache -q -O "${temp_file}" "${repo}/lists/.menu"
+    mapfile -t menu < "${temp_file}"
+    rm -f "${temp_file}"
     .header "List Get"
-    COLUMNS=0
     select option in "${menu[@]}"; do
         .msg "Loading '$option' lists."
-        wget --no-cache -q -O "${_TEMP}" "${_REPO}/lists/${option}.lst"
-        mapfile -t list < "${_TEMP}"
-        .load "${_TEMP}"
-        rm -f "${_TEMP}"
+        wget --no-cache -q -O "${temp_file}" "${repo}/lists/${option}.lst"
+        mapfile -t list < "${temp_file}"
+        .load "${temp_file}"
+        rm -f "${temp_file}"
         break
     done
     .save
 }
 
-function .lp
+function .lp                                                            # list print
 {
     .forget
     .header "List"
-    cat "${_LIST}"
+    .save
+    cat "${list_file}"
     printf "\n\n"
 }
 
-function .lr
+function .lr                                                            # list remove
 {
     local agree
     .forget
     .header "Empty the list."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        echo " " > "${_LIST}"
+        echo " " > "${list_file}"
     fi
-    _DIRECTORIES=()
-    _FILES=()
-    _COMMANDS=()
+    dirs=()
+    files=()
+    cmds=()
 }
 
-function .m
+function .m                                                             # manual
 {
     .forget
-    if [ ! -f "${_HELP}" ]; then
-        wget --no-cache -q -O "${_HELP}" "${_REPO}/readme.md"
+    if [ ! -f "${help_file}" ]; then
+        wget --no-cache -q -O "${help_file}" "${repo}/readme.md"
     fi
-    if [ -f "${_HELP}" ]; then
-        cat "${_HELP}" | more
+    if [ -f "${help_file}" ]; then
+        cat "${help_file}" | more
     else
         .msg "Error : Could not download."
     fi
 }
 
-function .r
+function .r                                                             # remove
 {
     local agree
     .forget
     .header "Remove .helper and all associated files."
     read -e -p "---[ Are you sure? Type 'yes' to agree. : " agree
     if [ "${agree}" == "yes" ]; then
-        .remember "rm -f ${_THIS}*"
-        eval "rm -f ${_THIS}*"
+        .remember "rm -f ${this_file}*"
+        eval "rm -f ${this_file}*"
     fi
 }
 
-function .u
+function .u                                                             # update
 {
     .forget
-    .remember "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
-    eval "wget --no-cache -q -O ${_THIS} ${_REPO}/.helper"
-    .remember "source ${_THIS}"
-    eval "source ${_THIS}"
+    .remember "wget --no-cache -q -O ${this_file} ${repo}/.helper"
+    eval "wget --no-cache -q -O ${this_file} ${repo}/.helper"
+    .remember "source ${this_file}"
+    eval "source ${this_file}"
 }
 
-function .v
+function .v                                                             # version
 {
     .forget
-    .splash "$_NAME  |  $_VERSION"
+    .splash "$script  |  $version"
 }
 
-# ---[ Autorun ]----------------------------------------------------------------
+# ---[ Autorun ]--------------------------------------------------------------------------------------------------------
 
-.load "$_LIST"
-.splash "$_NAME  |  run .h"
+.bootstrap
