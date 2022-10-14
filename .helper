@@ -85,7 +85,7 @@ function .splash                                                        # vertic
     done
     printf '%*.*s%b\n ' 0 "$((($(tput cols)-2-${#1})/2))" "$pad" "$1"
     for (( i=0; i<$(($(tput lines) / 2)); i++)); do
-        printf "\n"
+        printf " \n"
     done
 }
 
@@ -381,7 +381,7 @@ function .h                                                             # help
         fi
     done
     for ((i=0; i<$((($(tput lines)-${#help[@]})/2)); i++)); do
-        vpad+="\n"
+        vpad="$vpad"+" \n"
     done
     printf "$vpad"
     for line in "${help[@]}"; do
