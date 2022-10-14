@@ -1,0 +1,18 @@
+cmds:
+systemctl status salt-minion
+systemctl status salt-master
+systemctl restart salt-minion && systemctl status salt-minion
+systemctl restart salt-master && systemctl status salt-master
+ls -alh /etc
+
+dirs:
+/etc/salt
+/etc/salt/minion.d
+/etc/salt/master.d
+/srv/salt
+/var/log/salt
+/var/cache/salt
+
+files:
+/etc/salt/minion
+/etc/salt/master
