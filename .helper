@@ -444,7 +444,6 @@ function .u                                                             # update
 function .v                                                             # version
 {
     .forget
-    .header "Version"
     .msg "$script  |  $version"
 }
 
