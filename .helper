@@ -354,11 +354,10 @@ function .fr                                                            # file r
 
 function .h                                                             # help
 {
-    printf "\n\n"
+    .header "Help"
     for line in "${help[@]}"; do
         printf "   %s\n" "$line"
     done
-    printf "\n\n"
 }
 
 function .l                                                             # list directory
