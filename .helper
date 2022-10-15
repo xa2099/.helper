@@ -113,7 +113,7 @@ function .load                                                          # load a
                         fi
                     elif [ "$target" == "cmds" ]; then
                         if [[ " ${cmds[*]} " =~ " $line " ]]; then
-                            [printf "     \e[9m%s\e[0m\n" "${line}"
+                            printf "     \e[9m%s\e[0m\n" "${line}"
                         else
                             cmds[${#cmds[@]}]="$line"
                             printf "     %s\n" "${line}"
