@@ -3,4 +3,5 @@
 
 ``` 
 wget https://raw.githubusercontent.com/xa2099/.helper/main/.helper
+source .helper
 ```
