@@ -76,19 +76,6 @@ function .msg                                                           # print 
     printf "\n---[ %b\n\n" "$1"
 }
 
-function .splash                                                        # vertically and horizontaly centered message
-{
-    local pad
-    pad="$(printf '%0.1s' ' '{1..500})"
-    for (( i=0; i<$(($(tput lines) / 2)); i++)); do
-        printf "\n"
-    done
-    printf '%*.*s%b\n ' 0 "$((($(tput cols)-2-${#1})/2))" "$pad" "$1"
-    for (( i=0; i<$(($(tput lines) / 2)); i++)); do
-        printf " \n"
-    done
-}
-
 function .forget                                                        # remove last 'history' item
 {
     history -d $(history 1)
@@ -371,23 +358,11 @@ function .fr                                                            # file r
 
 function .h                                                             # help
 {
-    local pad vpad longest
-    .forget
-    pad="$(printf '%0.1s' ' '{1..500})"
-    longest=0
+    printf "\n"
     for line in "${help[@]}"; do
-        if [ $longest -lt ${#line} ]; then
-            longest=${#line}
-        fi
+        printf "   %s\n" "$line"
     done
-    for ((i=0; i<$((($(tput lines)-${#help[@]})/2)); i++)); do
-        vpad="$vpad"+" \n"
-    done
-    printf "$vpad"
-    for line in "${help[@]}"; do
-        printf '%*.*s%s\n' 0 "$((($(tput cols)-$longest)/2))" "$pad" "$line"
-    done
-    printf "$vpad"
+    printf "\n"
 }
 
 function .l                                                             # list directory
