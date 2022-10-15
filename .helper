@@ -358,11 +358,11 @@ function .fr                                                            # file r
 
 function .h                                                             # help
 {
-    printf "\n"
+    printf "\n\n"
     for line in "${help[@]}"; do
         printf "   %s\n" "$line"
     done
-    printf "\n"
+    printf "\n\n"
 }
 
 function .l                                                             # list directory
@@ -450,7 +450,8 @@ function .u                                                             # update
 function .v                                                             # version
 {
     .forget
-    .splash "$script  |  $version"
+    .header "Version"
+    .msg "$script  |  $version"
 }
 
 # ---[ Autorun ]--------------------------------------------------------------------------------------------------------
