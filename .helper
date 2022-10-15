@@ -378,7 +378,7 @@ function .lg                                                            # list g
     done
     read -p "    : " choice
     wget --no-cache -q -O "${temp_file}" "${repo}/lists/${menu[$((choice-1))]}.lst"
-    .load "${temp_file}
+    .load "${temp_file}"
     rm -f "${temp_file}"
     .save
 }
