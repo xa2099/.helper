@@ -17,7 +17,6 @@ files=()
 
 help=(
     '.h    Help (this menu).'
-    '.m    Manual.'
     ''
     '.d    Directory to change to.'
     '.dr   Directory Remove from the list.'
@@ -367,20 +366,20 @@ function .l                                                             # list d
 
 function .lg                                                            # list get
 {
-    local menu
+    local menu item choice counter=1
     .forget
     wget --no-cache -q -O "${temp_file}" "${repo}/lists/.menu"
     mapfile -t menu < "${temp_file}"
     rm -f "${temp_file}"
     .header "List Get"
-    select option in "${menu[@]}"; do
-        .msg "Loading '$option' lists."
-        wget --no-cache -q -O "${temp_file}" "${repo}/lists/${option}.lst"
-        mapfile -t list < "${temp_file}"
-        .load "${temp_file}"
-        rm -f "${temp_file}"
-        break
+    for item in "${menu[@]}"; do
+        printf "%-3s%s. %s\n\n" "$indent" "$counter" "$item"
+        (( counter++ ))
     done
+    read -p "    : " choice
+    wget --no-cache -q -O "${temp_file}" "${repo}/lists/${menu[$((choice-1))]}.lst"
+    .load "${temp_file}
+    rm -f "${temp_file}"
     .save
 }
 
