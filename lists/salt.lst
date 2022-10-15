@@ -1,9 +1,12 @@
 cmds:
 systemctl status salt-minion
-systemctl status salt-master
 systemctl restart salt-minion && systemctl status salt-minion
+ls -alh /etc/salt/minion.d
+cat /etc/salt/minon.d/*
+systemctl status salt-master
 systemctl restart salt-master && systemctl status salt-master
-ls -alh /etc
+ls -alh /etc/salt/master.d
+cat /etc/salt/master.d/*
 
 dirs:
 /etc/salt
