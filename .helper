@@ -1,7 +1,7 @@
 script=".helper"
 version="22.10.14"
 
-repo="https://raw.githubusercontent.com/xa2099/.helper"
+repo="https://raw.githubusercontent.com/xa2099/.helper/main"
 current_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 this_file="${current_dir}/.helper"
 list_file="${current_dir}/.helper.lst"
